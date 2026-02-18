@@ -1,262 +1,184 @@
-import { useState, useEffect } from 'react';
-import './App.css';
+import { useState, useEffect } from 'react'
+import aspireLogo from '/Aspire.png'
+import './App.css'
 
-interface Circle {
-    id: string,
-    name: string,
-}
-
-interface Post {
-    id: string,
-    circleId: string,
-    value: string,
+interface WeatherForecast {
+  date: string
+  temperatureC: number
+  temperatureF: number
+  summary: string
 }
 
 function App() {
-    const [circles, setCircles] = useState<Circle[]>([]);
-    const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [newCircleName, setNewCircleName] = useState('');
-    const [newPostValue, setNewPostValue] = useState('');
+  const [weatherData, setWeatherData] = useState<WeatherForecast[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [useCelsius, setUseCelsius] = useState(false)
 
-    const fetchCircles = async () => {
-        setLoading(true)
-        setError(null)
-
-        try {
-            const response = await fetch('/api/circles');
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data: Circle[] = await response.json();
-            setCircles(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch circles');
-            console.error('Error fetching circles:', err);
-        } finally {
-            setLoading(false);
-        }
+  const fetchWeatherForecast = async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/weatherforecast')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data: WeatherForecast[] = await response.json()
+      setWeatherData(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch weather data')
+      console.error('Error fetching weather forecast:', err)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    const fetchPosts = async (circleId: string) => {
-        try {
-            const response = await fetch(`/api/posts/circle/${circleId}`);
+  useEffect(() => {
+    fetchWeatherForecast()
+  }, [])
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(undefined, { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    })
+  }
 
-            const data: Post[] = await response.json();
-            setPosts(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch posts');
-            console.error('Error fetching posts:', err);
-        }
-    }
+  return (
+    <div className="app-container">
+      <header className="app-header">
+        <a 
+          href="https://aspire.dev" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          aria-label="Visit Aspire website (opens in new tab)"
+          className="logo-link"
+        >
+          <img src={aspireLogo} className="logo" alt="Aspire logo" />
+        </a>
+        <h1 className="app-title">Aspire Starter</h1>
+        <p className="app-subtitle">Modern distributed application development</p>
+      </header>
 
-    const createCircle = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!newCircleName.trim()) return;
-
-        try {
-            const response = await fetch('/api/circles', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newCircleName })
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.errors?.[0] || 'Failed to create circle');
-            }
-
-            setNewCircleName('');
-            await fetchCircles();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to create circle');
-            console.error('Error creating circle:', err);
-        }
-    }
-
-    const createPost = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedCircle || !newPostValue.trim()) return;
-
-        try {
-            const response = await fetch('/api/posts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    circleId: selectedCircle.id,
-                    value: newPostValue
-                })
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.errors?.[0] || 'Failed to create post');
-            }
-
-            setNewPostValue('');
-            await fetchPosts(selectedCircle.id);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to create post');
-            console.error('Error creating post:', err);
-        }
-    }
-
-    const selectCircle = (circle: Circle) => {
-        setSelectedCircle(circle);
-        setPosts([]);
-        fetchPosts(circle.id);
-    }
-
-    useEffect(() => {
-        fetchCircles();
-    }, []);
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString(undefined, {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        })
-    }
-
-    return (
-        <div className="app-container">
-            <header className="app-header">
-                <a
-                    href="https://aspire.dev"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit Aspire website (opens in new tab)"
-                    className="logo-link"
+      <main className="main-content">
+        <section className="weather-section" aria-labelledby="weather-heading">
+          <div className="card">
+            <div className="section-header">
+              <h2 id="weather-heading" className="section-title">Weather Forecast</h2>
+              <div className="header-actions">
+                <fieldset className="toggle-switch" aria-label="Temperature unit selection">
+                  <legend className="visually-hidden">Temperature unit</legend>
+                  <button 
+                    className={`toggle-option ${!useCelsius ? 'active' : ''}`}
+                    onClick={() => setUseCelsius(false)}
+                    aria-pressed={!useCelsius}
+                    type="button"
+                  >
+                    <span aria-hidden="true">°F</span>
+                    <span className="visually-hidden">Fahrenheit</span>
+                  </button>
+                  <button 
+                    className={`toggle-option ${useCelsius ? 'active' : ''}`}
+                    onClick={() => setUseCelsius(true)}
+                    aria-pressed={useCelsius}
+                    type="button"
+                  >
+                    <span aria-hidden="true">°C</span>
+                    <span className="visually-hidden">Celsius</span>
+                  </button>
+                </fieldset>
+                <button 
+                  className="refresh-button"
+                  onClick={fetchWeatherForecast} 
+                  disabled={loading}
+                  aria-label={loading ? 'Loading weather forecast' : 'Refresh weather forecast'}
+                  type="button"
                 >
-                    {/*<img src={aspireLogo} className="logo" alt="Aspire logo" />*/}
-                </a>
-                <h1 className="app-title">Circles</h1>
-                <p className="app-subtitle">Share your thoughts in circles</p>
-            </header>
-
-            <main className="main-content">
-                {error && (
-                    <div className="error-message" role="alert" aria-live="polite">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        <span>{error}</span>
+                  <svg 
+                    className={`refresh-icon ${loading ? 'spinning' : ''}`}
+                    width="20" 
+                    height="20" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                  </svg>
+                  <span>{loading ? 'Loading...' : 'Refresh'}</span>
+                </button>
+              </div>
+            </div>
+            
+            {error && (
+              <div className="error-message" role="alert" aria-live="polite">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+            
+            {loading && weatherData.length === 0 && (
+              <div className="loading-skeleton" role="status" aria-live="polite" aria-label="Loading weather data">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="skeleton-row" aria-hidden="true" />
+                ))}
+                <span className="visually-hidden">Loading weather forecast data...</span>
+              </div>
+            )}
+            
+            {weatherData.length > 0 && (
+              <div className="weather-grid">
+                {weatherData.map((forecast, index) => (
+                  <article key={index} className="weather-card" aria-label={`Weather for ${formatDate(forecast.date)}`}>
+                    <h3 className="weather-date">
+                      <time dateTime={forecast.date}>{formatDate(forecast.date)}</time>
+                    </h3>
+                    <p className="weather-summary">{forecast.summary}</p>
+                    <div className="weather-temps" aria-label={`Temperature: ${useCelsius ? forecast.temperatureC : forecast.temperatureF} degrees ${useCelsius ? 'Celsius' : 'Fahrenheit'}`}>
+                      <div className="temp-group">
+                        <span className="temp-value" aria-hidden="true">
+                          {useCelsius ? forecast.temperatureC : forecast.temperatureF}°
+                        </span>
+                        <span className="temp-unit" aria-hidden="true">{useCelsius ? 'Celsius' : 'Fahrenheit'}</span>
+                      </div>
                     </div>
-                )}
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
 
-                <div className="circles-container">
-                    <section className="circles-section" aria-labelledby="circles-heading">
-                        <div className="card">
-                            <h2 id="circles-heading" className="section-title">Your Circles</h2>
-
-                            <form onSubmit={createCircle} className="create-form">
-                                <input
-                                    type="text"
-                                    value={newCircleName}
-                                    onChange={(e) => setNewCircleName(e.target.value)}
-                                    placeholder="New circle name..."
-                                    className="text-input"
-                                    maxLength={200}
-                                />
-                                <button type="submit" className="primary-button" disabled={!newCircleName.trim()}>
-                                    Create Circle
-                                </button>
-                            </form>
-
-                            {loading && circles.length === 0 ? (
-                                <div className="loading-skeleton" role="status" aria-live="polite">
-                                    {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="skeleton-row" aria-hidden="true" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="circles-list">
-                                    {circles.length === 0 ? (
-                                        <p className="empty-state">No circles yet. Create one to get started!</p>
-                                    ) : (
-                                        circles.map((circle) => (
-                                            <button
-                                                key={circle.id}
-                                                onClick={() => selectCircle(circle)}
-                                                className={`circle-item ${selectedCircle?.id === circle.id ? 'active' : ''}`}
-                                            >
-                                                {circle.name}
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </section>
-
-                    {selectedCircle && (
-                        <section className="posts-section" aria-labelledby="posts-heading">
-                            <div className="card">
-                                <h2 id="posts-heading" className="section-title">
-                                    Posts in {selectedCircle.name}
-                                </h2>
-
-                                <form onSubmit={createPost} className="create-form">
-                                    <textarea
-                                        value={newPostValue}
-                                        onChange={(e) => setNewPostValue(e.target.value)}
-                                        placeholder="What's on your mind?"
-                                        className="text-input"
-                                        rows={3}
-                                    />
-                                    <button type="submit" className="primary-button" disabled={!newPostValue.trim()}>
-                                        Create Post
-                                    </button>
-                                </form>
-
-                                <div className="posts-list">
-                                    {posts.length === 0 ? (
-                                        <p className="empty-state">No posts yet. Be the first to post!</p>
-                                    ) : (
-                                        posts.map((post) => (
-                                            <article key={post.id} className="post-item">
-                                                <p>{post.value}</p>
-                                            </article>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </section>
-                    )}
-                </div>
-            </main>
-
-            <footer className="app-footer">
-                <nav aria-label="Footer navigation">
-                    <a href="https://aspire.dev" target="_blank" rel="noopener noreferrer">
-                        Learn more about Aspire<span className="visually-hidden"> (opens in new tab)</span>
-                    </a>
-                    <a
-                        href="https://github.com/dotnet/aspire"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="github-link"
-                        aria-label="View Aspire on GitHub (opens in new tab)"
-                    >
-                        <img src="/github.svg" alt="" width="24" height="24" aria-hidden="true" />
-                        <span className="visually-hidden">GitHub</span>
-                    </a>
-                </nav>
-            </footer>
-        </div>
-    )
+      <footer className="app-footer">
+        <nav aria-label="Footer navigation">
+          <a href="https://aspire.dev" target="_blank" rel="noopener noreferrer">
+            Learn more about Aspire<span className="visually-hidden"> (opens in new tab)</span>
+          </a>
+          <a 
+            href="https://github.com/dotnet/aspire" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="github-link"
+            aria-label="View Aspire on GitHub (opens in new tab)"
+          >
+            <img src="/github.svg" alt="" width="24" height="24" aria-hidden="true" />
+            <span className="visually-hidden">GitHub</span>
+          </a>
+        </nav>
+      </footer>
+    </div>
+  )
 }
 
 export default App
