@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="circles.AppHost/circles.AppHost.csproj" />
+  <Project Path="circles.Server/circles.Server.csproj" />
+  <Project Path="frontend/frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
