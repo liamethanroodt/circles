@@ -11,4 +11,4 @@ A family-focused social media platform where you share moments with the people w
 - **Simple & clean**: Instagram-style interface without the noise
 
 ## Stack
-- Built with [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) and [React](https://react.dev/)
+- Built with [.NET Aspire](https://aspire.dev/) and [React](https://react.dev/)
