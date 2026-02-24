@@ -1,4 +1,4 @@
-using circles.Server;
+using circles.Server.Data;
 using circles.Server.Features.Circles;
 using circles.Server.Features.Posts;
 using Microsoft.EntityFrameworkCore;

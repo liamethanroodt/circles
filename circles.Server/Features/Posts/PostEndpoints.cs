@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using circles.Server.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace circles.Server.Features.Posts;

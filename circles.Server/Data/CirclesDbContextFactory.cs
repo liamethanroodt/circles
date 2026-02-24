@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace circles.Server;
+namespace circles.Server.Data;
 
 public class CirclesDbContextFactory : IDesignTimeDbContextFactory<CirclesDbContext>
 {

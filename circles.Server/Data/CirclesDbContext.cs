@@ -2,7 +2,7 @@ using circles.Server.Features.Circles;
 using circles.Server.Features.Posts;
 using Microsoft.EntityFrameworkCore;
 
-namespace circles.Server;
+namespace circles.Server.Data;
 
 public class CirclesDbContext : DbContext
 {
