@@ -784,6 +784,7 @@
   color: var(--text-primary);
   font-size: 0.95rem;
   font-weight: 500;
+  animation: slideIn 0.3s ease-out;
 }
 
 .circle-item:hover {

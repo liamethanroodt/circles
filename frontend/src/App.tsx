@@ -175,29 +175,15 @@ function App() {
                                 </button>
                             </form>
 
-                            {loading && circles.length === 0 ? (
-                                <div className="loading-skeleton" role="status" aria-live="polite">
-                                    {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="skeleton-row" aria-hidden="true" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="circles-list">
-                                    {circles.length === 0 ? (
-                                        <p className="empty-state">No circles yet. Create one to get started!</p>
-                                    ) : (
-                                        circles.map((circle) => (
-                                            <button
-                                                key={circle.id}
-                                                onClick={() => selectCircle(circle)}
-                                                className={`circle-item ${selectedCircle?.id === circle.id ? 'active' : ''}`}
-                                            >
-                                                {circle.name}
-                                            </button>
-                                        ))
-                                    )}
-                                </div>
-                            )}
+                            {circles.map((circle) => (
+                                <button
+                                    key={circle.id}
+                                    onClick={() => selectCircle(circle)}
+                                    className={`circle-item ${selectedCircle?.id === circle.id ? 'active' : ''}`}
+                                >
+                                    {circle.name}
+                                </button>
+                            ))}
                         </div>
                     </section>
 
@@ -222,39 +208,17 @@ function App() {
                                 </form>
 
                                 <div className="posts-list">
-                                    {posts.length === 0 ? (
-                                        <p className="empty-state">No posts yet. Be the first to post!</p>
-                                    ) : (
-                                        posts.map((post) => (
-                                            <article key={post.id} className="post-item">
-                                                <p>{post.value}</p>
-                                            </article>
-                                        ))
-                                    )}
+                                    {posts.map((post) => (
+                                        <article key={post.id} className="post-item">
+                                            <p>{post.value}</p>
+                                        </article>
+                                    ))}
                                 </div>
                             </div>
                         </section>
                     )}
                 </div>
             </main>
-
-            {/*<footer className="app-footer">*/}
-            {/*    <nav aria-label="Footer navigation">*/}
-            {/*        <a href="https://aspire.dev" target="_blank" rel="noopener noreferrer">*/}
-            {/*            Learn more about Aspire<span className="visually-hidden"> (opens in new tab)</span>*/}
-            {/*        </a>*/}
-            {/*        <a*/}
-            {/*            href="https://github.com/dotnet/aspire"*/}
-            {/*            target="_blank"*/}
-            {/*            rel="noopener noreferrer"*/}
-            {/*            className="github-link"*/}
-            {/*            aria-label="View Aspire on GitHub (opens in new tab)"*/}
-            {/*        >*/}
-            {/*            <img src="/github.svg" alt="" width="24" height="24" aria-hidden="true" />*/}
-            {/*            <span className="visually-hidden">GitHub</span>*/}
-            {/*        </a>*/}
-            {/*    </nav>*/}
-            {/*</footer>*/}
         </div>
     )
 }
