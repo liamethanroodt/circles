@@ -8,7 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
-builder.AddRedisOutputCache("cache");
+builder.AddRedisClientBuilder("cache")
+    .WithOutputCache();
 builder.AddSqlServerClient("circlesdb");
 
 // Add DbContext
