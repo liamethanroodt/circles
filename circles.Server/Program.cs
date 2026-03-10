@@ -8,8 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
-builder.AddRedisClientBuilder("cache")
-    .WithOutputCache();
+builder.AddRedisOutputCache("cache");
 builder.AddSqlServerClient("circlesdb");
 
 // Add DbContext
@@ -26,8 +25,8 @@ builder.Services.AddProblemDetails(options =>
             var endpoint = context.HttpContext.GetEndpoint();
             if (endpoint != null && context.Exception != null)
             {
-                context.ProblemDetails.Extensions["errors"] = new[] 
-                { 
+                context.ProblemDetails.Extensions["errors"] = new[]
+                {
                     $"Invalid request format. Please ensure all fields have the correct data types. Error: {context.Exception.Message}"
                 };
             }
