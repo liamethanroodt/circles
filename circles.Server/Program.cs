@@ -1,3 +1,5 @@
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using circles.Server.Data;
 using circles.Server.Features.Auth;
 using circles.Server.Features.Circles;
@@ -13,6 +15,7 @@ builder.AddServiceDefaults();
 builder.AddRedisClientBuilder("cache")
     .WithOutputCache();
 builder.AddSqlServerClient("circlesdb");
+builder.AddAzureBlobServiceClient("blobs");
 
 // Add DbContext
 builder.Services.AddDbContext<CirclesDbContext>(options =>
@@ -74,6 +77,11 @@ builder.Services.AddProblemDetails(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 var app = builder.Build();
 
 // Apply database migrations automatically
@@ -81,6 +89,23 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CirclesDbContext>();
     dbContext.Database.Migrate();
+}
+
+// Configure Azurite CORS in development so the browser can PUT directly to blob storage
+if (app.Environment.IsDevelopment())
+{
+    var blobServiceClient = app.Services.GetRequiredService<BlobServiceClient>();
+    var properties = await blobServiceClient.GetPropertiesAsync();
+    properties.Value.Cors.Clear();
+    properties.Value.Cors.Add(new BlobCorsRule
+    {
+        AllowedOrigins = "*",
+        AllowedMethods = "PUT,GET,OPTIONS",
+        AllowedHeaders = "*",
+        ExposedHeaders = "*",
+        MaxAgeInSeconds = 86400
+    });
+    await blobServiceClient.SetPropertiesAsync(properties.Value);
 }
 
 // Configure the HTTP request pipeline.

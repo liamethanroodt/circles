@@ -13,6 +13,7 @@ public class CirclesDbContext : IdentityDbContext
 
     public DbSet<Circle> Circles => Set<Circle>();
     public DbSet<Post> Posts => Set<Post>();
+    public DbSet<PostMedia> PostMedia => Set<PostMedia>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,17 @@ public class CirclesDbContext : IdentityDbContext
                 .WithMany()
                 .HasForeignKey(e => e.CircleId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.Media)
+                .WithOne(e => e.Post)
+                .HasForeignKey(e => e.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PostMedia>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.BlobUrl).IsRequired();
+            entity.Property(e => e.MediaType).IsRequired().HasMaxLength(10);
         });
     }
 }

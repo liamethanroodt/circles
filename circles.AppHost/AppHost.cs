@@ -5,11 +5,18 @@ var cache = builder.AddRedis("cache");
 var sql = builder.AddSqlServer("sql")
     .AddDatabase("circlesdb");
 
+var storage = builder.AddAzureStorage("storage")
+    .RunAsEmulator();
+
+var blobs = storage.AddBlobs("blobs");
+
 var server = builder.AddProject<Projects.circles_Server>("server")
     .WithReference(cache)
     .WithReference(sql)
+    .WithReference(blobs)
     .WaitFor(cache)
     .WaitFor(sql)
+    .WaitFor(blobs)
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
 
