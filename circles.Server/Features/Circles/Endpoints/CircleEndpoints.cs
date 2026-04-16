@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using circles.Server.Data;
+using circles.Server.Features.Circles.Dtos;
+using circles.Server.Features.Circles.Models;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 
-namespace circles.Server.Features.Circles;
+namespace circles.Server.Features.Circles.Endpoints;
 
 public static class CircleEndpoints
 {
@@ -61,7 +63,6 @@ public static class CircleEndpoints
         db.Circles.Add(circle);
         await db.SaveChangesAsync();
 
-        // Clear the cache so fresh data is fetched
         await cache.EvictByTagAsync("circles", default);
 
         return Results.Created($"/api/circles/{circle.Id}", circle);

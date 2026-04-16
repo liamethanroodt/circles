@@ -1,4 +1,4 @@
-namespace circles.Server.Features.Posts;
+namespace circles.Server.Features.Posts.Models;
 
 public class PostMedia
 {

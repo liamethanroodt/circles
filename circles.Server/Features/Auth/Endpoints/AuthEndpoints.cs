@@ -1,6 +1,7 @@
+using circles.Server.Features.Auth.Dtos;
 using Microsoft.AspNetCore.Identity;
 
-namespace circles.Server.Features.Auth;
+namespace circles.Server.Features.Auth.Endpoints;
 
 public static class AuthEndpoints
 {
@@ -89,6 +90,3 @@ public static class AuthEndpoints
         return Task.FromResult(Results.Ok(new { isAuthenticated = false, email = (string?)null }));
     }
 }
-
-public record RegisterRequest(string Email, string Password);
-public record LoginRequest(string Email, string Password);

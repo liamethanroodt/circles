@@ -1,5 +1,5 @@
-using circles.Server.Features.Circles;
-using circles.Server.Features.Posts;
+using circles.Server.Features.Circles.Models;
+using circles.Server.Features.Posts.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

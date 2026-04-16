@@ -1,4 +1,4 @@
-namespace circles.Server.Features.Circles;
+namespace circles.Server.Features.Circles.Models;
 
 public class Circle
 {

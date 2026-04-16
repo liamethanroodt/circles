@@ -2,9 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using circles.Server.Data;
+using circles.Server.Features.Posts.Dtos;
+using circles.Server.Features.Posts.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace circles.Server.Features.Posts;
+namespace circles.Server.Features.Posts.Endpoints;
 
 public static class PostEndpoints
 {

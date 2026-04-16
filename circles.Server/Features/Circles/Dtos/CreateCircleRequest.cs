@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace circles.Server.Features.Circles;
+namespace circles.Server.Features.Circles.Dtos;
 
 public class CreateCircleRequest
 {

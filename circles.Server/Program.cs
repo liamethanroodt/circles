@@ -1,9 +1,9 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using circles.Server.Data;
-using circles.Server.Features.Auth;
-using circles.Server.Features.Circles;
-using circles.Server.Features.Posts;
+using circles.Server.Features.Auth.Endpoints;
+using circles.Server.Features.Circles.Endpoints;
+using circles.Server.Features.Posts.Endpoints;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace circles.Server.Features.Posts;
+namespace circles.Server.Features.Posts.Dtos;
 
 public class CreatePostRequest
 {
