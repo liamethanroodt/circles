@@ -1,10 +1,11 @@
 using circles.Server.Features.Circles;
 using circles.Server.Features.Posts;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace circles.Server.Data;
 
-public class CirclesDbContext : DbContext
+public class CirclesDbContext : IdentityDbContext
 {
     public CirclesDbContext(DbContextOptions<CirclesDbContext> options) : base(options)
     {
