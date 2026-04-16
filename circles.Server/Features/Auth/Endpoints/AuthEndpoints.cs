@@ -76,17 +76,17 @@ public static class AuthEndpoints
         return Results.Ok(new { message = "Logged out." });
     }
 
-    private static Task<IResult> GetCurrentUser(HttpContext httpContext)
+    private static IResult GetCurrentUser(HttpContext httpContext)
     {
         if (httpContext.User.Identity?.IsAuthenticated == true)
         {
-            return Task.FromResult(Results.Ok(new
+            return Results.Ok(new
             {
                 isAuthenticated = true,
                 email = httpContext.User.Identity.Name
-            }));
+            });
         }
 
-        return Task.FromResult(Results.Ok(new { isAuthenticated = false, email = (string?)null }));
+        return Results.Ok(new { isAuthenticated = false, email = (string?)null });
     }
 }
