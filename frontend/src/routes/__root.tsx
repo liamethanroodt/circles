@@ -1,17 +1,17 @@
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
-import '../App.css'
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import "../App.css";
 
 export interface AuthContext {
-    isAuthenticated: boolean;
-    email: string | null;
-    checkAuth: (email?: string) => Promise<void>;
-    logout: () => Promise<void>;
+	isAuthenticated: boolean;
+	email: string | null;
+	checkAuth: (email?: string) => Promise<void>;
+	logout: () => Promise<void>;
 }
 
 export const Route = createRootRouteWithContext<AuthContext>()({
-    component: RootLayout,
-})
+	component: RootLayout,
+});
 
 function RootLayout() {
-    return <Outlet />
+	return <Outlet />;
 }
