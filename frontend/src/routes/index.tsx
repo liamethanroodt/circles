@@ -1,6 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import "../App.css";
+import { ConcentricRings } from "@/components/ConcentricRings";
 
 interface Circle {
 	id: string;
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
 	const { email, logout } = Route.useRouteContext();
+	const navigate = useNavigate();
 	const [circles, setCircles] = useState<Circle[]>([]);
 	const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
 	const [posts, setPosts] = useState<Post[]>([]);
@@ -207,6 +209,21 @@ function HomePage() {
 					</div>
 				</div>
 			</header>
+
+			<button onClick={() => navigate({ to: "/profile", viewTransition: true })}>test</button>
+			<ConcentricRings>
+				<div
+					style={
+						{
+							backgroundColor: "red",
+							borderRadius: 999,
+							width: 75,
+							height: 75,
+							viewTransitionName: "red-circle",
+						} as React.CSSProperties
+					}
+				/>
+			</ConcentricRings>
 
 			<main className="main-content">
 				{error && (
