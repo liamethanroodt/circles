@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using circles.Server.Data;
 using circles.Server.Features.Auth.Endpoints;
+using circles.Server.Features.Auth.Models;
 using circles.Server.Features.Circles.Endpoints;
 using circles.Server.Features.Posts.Endpoints;
 using Microsoft.AspNetCore.Identity;
@@ -22,7 +23,7 @@ builder.Services.AddDbContext<CirclesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("circlesdb")));
 
 // Add Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 6;

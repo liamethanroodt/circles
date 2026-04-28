@@ -14,6 +14,7 @@ interface AuthPageProps {
 function AuthPage({ onAuthenticated }: AuthPageProps) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [displayName, setDisplayName] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -29,10 +30,12 @@ function AuthPage({ onAuthenticated }: AuthPageProps) {
 		const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
 		try {
+			const body = isLogin ? { email, password } : { email, password, displayName };
+
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ email, password }),
+				body: JSON.stringify(body),
 			});
 
 			const data = await response.json();
@@ -141,6 +144,18 @@ function AuthPage({ onAuthenticated }: AuthPageProps) {
 										</Alert>
 									)}
 									<div className="flex flex-col gap-2">
+										<Label htmlFor="register-display-name">Display Name</Label>
+										<Input
+											id="register-display-name"
+											type="text"
+											placeholder="Your name"
+											value={displayName}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)}
+											required
+											autoComplete="name"
+										/>
+									</div>
+									<div className="flex flex-col gap-2">
 										<Label htmlFor="register-email">Email</Label>
 										<Input
 											id="register-email"
@@ -166,7 +181,7 @@ function AuthPage({ onAuthenticated }: AuthPageProps) {
 										/>
 										<p className="text-xs text-muted-foreground">At least 6 characters with an uppercase letter and a digit.</p>
 									</div>
-									<Button type="submit" className="w-full" disabled={loading || !email.trim() || !password.trim()}>
+									<Button type="submit" className="w-full" disabled={loading || !email.trim() || !password.trim() || !displayName.trim()}>
 										{loading ? "Creating account…" : "Create Account"}
 									</Button>
 								</form>

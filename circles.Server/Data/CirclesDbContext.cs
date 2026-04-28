@@ -1,3 +1,4 @@
+using circles.Server.Features.Auth.Models;
 using circles.Server.Features.Circles.Models;
 using circles.Server.Features.Posts.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace circles.Server.Data;
 
-public class CirclesDbContext : IdentityDbContext
+public class CirclesDbContext : IdentityDbContext<ApplicationUser>
 {
     public CirclesDbContext(DbContextOptions<CirclesDbContext> options) : base(options)
     {
