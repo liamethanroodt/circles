@@ -4,12 +4,13 @@ import { createRoot } from "react-dom/client";
 
 // Components
 import App from "./App";
+
 // Routing
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 // Styles
-import "./index.css";
+import "./styles/index.css";
 
 const router = createRouter({
 	routeTree,

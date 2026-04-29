@@ -6,7 +6,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import type { AnyRouter } from "@tanstack/react-router";
 
 // Styles
-import "./App.css";
+import "./styles/App.css";
 
 interface AppProps {
 	router: AnyRouter;
