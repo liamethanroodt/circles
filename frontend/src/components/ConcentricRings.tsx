@@ -1,3 +1,4 @@
+// Components
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -45,10 +46,8 @@ export function ConcentricRings({ children }: Props) {
 					}}
 				/>
 			))}
-
 			{/* Center element */}
 			<div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}>{children}</div>
-
 			{/* Orbiting avatars — each ring uses a zero-size rotating wrapper at center */}
 			{RINGS.map((ring) => {
 				const spinAnim = ring.clockwise ? "ring-spin-cw" : "ring-spin-ccw";
