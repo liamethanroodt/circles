@@ -1,6 +1,11 @@
+// Reacft
 import { useState, useEffect } from "react";
+
+// Routing
 import { RouterProvider } from "@tanstack/react-router";
 import type { AnyRouter } from "@tanstack/react-router";
+
+// Styles
 import "./App.css";
 
 interface AppProps {
@@ -55,8 +60,8 @@ function App({ router }: AppProps) {
 
 	if (loading) {
 		return (
-			<div className="app-container" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-				<div className="auth-spinner-page" />
+			<div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
+				<div className="w-9 h-9 rounded-full border-[3px] border-[rgba(124,146,245,0.2)] border-t-[#7c92f5] animate-spin" />
 			</div>
 		);
 	}

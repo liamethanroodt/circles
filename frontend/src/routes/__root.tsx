@@ -1,5 +1,5 @@
+// Routing
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import "../App.css";
 
 export interface AuthContext {
 	isAuthenticated: boolean;

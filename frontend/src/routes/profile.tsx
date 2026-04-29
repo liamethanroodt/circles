@@ -1,5 +1,17 @@
+// React
+import { useEffect, useRef, useState } from "react";
+
+// Components
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+// Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 
 export const Route = createFileRoute("/profile")({
 	beforeLoad: ({ context }) => {
@@ -10,112 +22,172 @@ export const Route = createFileRoute("/profile")({
 	component: ProfilePage,
 });
 
-function ProfilePage() {
-	const { email } = Route.useRouteContext();
-	const navigate = useNavigate();
+interface UserProfile {
+	email: string;
+	displayName: string;
+	bio: string | null;
+	profilePictureUrl: string | null;
+}
 
+function ProfilePage() {
+	const navigate = useNavigate();
+	const [profile, setProfile] = useState<UserProfile | null>(null);
 	const [displayName, setDisplayName] = useState("");
 	const [bio, setBio] = useState("");
-	const [saved, setSaved] = useState(false);
+	const [saving, setSaving] = useState(false);
+	const [uploadingPicture, setUploadingPicture] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [success, setSuccess] = useState<string | null>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	const handleSave = (e: React.FormEvent) => {
+	const handleSave = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// TODO: persist to API
-		setSaved(true);
-		setTimeout(() => setSaved(false), 2000);
+		setError(null);
+		setSuccess(null);
+		setSaving(true);
+
+		try {
+			const response = await fetch("/api/auth/profile", {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ displayName, bio: bio || null }),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.errors?.[0] || "Failed to save profile.");
+			}
+
+			setProfile((prev) => (prev ? { ...prev, ...data } : prev));
+			setSuccess("Profile saved.");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "An error occurred.");
+		} finally {
+			setSaving(false);
+		}
 	};
 
-	return (
-		<div style={{ position: "relative", minHeight: "100vh" }}>
-			{/* Red circle — top third, horizontally centered */}
-			<div
-				style={
-					{
-						backgroundColor: "red",
-						borderRadius: 999,
-						width: 150,
-						height: 150,
-						position: "absolute",
-						left: "50%",
-						top: "33.33%",
-						transform: "translate(-50%, -50%)",
-						viewTransitionName: "red-circle",
-					} as React.CSSProperties
+	const handlePictureSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		setError(null);
+		setUploadingPicture(true);
+
+		try {
+			const urlRes = await fetch("/api/auth/profile/picture-upload-url");
+			if (!urlRes.ok) throw new Error("Failed to get upload URL.");
+			const { uploadUrl, publicUrl } = await urlRes.json();
+
+			const uploadRes = await fetch(uploadUrl, {
+				method: "PUT",
+				headers: { "x-ms-blob-type": "BlockBlob", "Content-Type": "image/jpeg" },
+				body: file,
+			});
+
+			if (!uploadRes.ok) throw new Error("Upload failed.");
+
+			setProfile((prev) => (prev ? { ...prev, profilePictureUrl: `${publicUrl}?t=${Date.now()}` } : prev));
+			setSuccess("Profile picture updated.");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Upload failed.");
+		} finally {
+			setUploadingPicture(false);
+			if (fileInputRef.current) fileInputRef.current.value = "";
+		}
+	};
+
+	useEffect(() => {
+		fetch("/api/auth/me")
+			.then((r) => r.json())
+			.then((data) => {
+				if (data.isAuthenticated) {
+					setProfile(data);
+					setDisplayName(data.displayName ?? "");
+					setBio(data.bio ?? "");
 				}
-			/>
+			});
+	}, []);
 
-			<div
-				style={{
-					maxWidth: 480,
-					margin: "0 auto",
-					padding: "24px 16px",
-					paddingTop: "calc(33.33% + 100px)",
-				}}
-			>
-				<div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-					<button onClick={() => navigate({ to: "/", viewTransition: true })} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20 }}>
-						←
-					</button>
-					<h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>Profile</h1>
-				</div>
+	const initials = (displayName || profile?.email || "?")
+		.split(" ")
+		.map((w) => w[0])
+		.join("")
+		.toUpperCase()
+		.slice(0, 2);
 
-				<form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-					<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-						<label style={{ fontSize: 13, fontWeight: 500, color: "#666" }}>Email</label>
-						<input
-							type="text"
-							value={email ?? ""}
-							disabled
-							style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#f5f5f5", color: "#888", fontSize: 14 }}
-						/>
-					</div>
+	return (
+		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+			<div className="flex w-full max-w-sm flex-col gap-6">
+				<Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/", viewTransition: true })}>
+					← Back
+				</Button>
 
-					<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-						<label htmlFor="display-name" style={{ fontSize: 13, fontWeight: 500, color: "#666" }}>
-							Display name
-						</label>
-						<input
-							id="display-name"
-							type="text"
-							value={displayName}
-							onChange={(e) => setDisplayName(e.target.value)}
-							placeholder="Enter your display name"
-							maxLength={80}
-							style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14 }}
-						/>
-					</div>
-
-					<div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-						<label htmlFor="bio" style={{ fontSize: 13, fontWeight: 500, color: "#666" }}>
-							Bio
-						</label>
-						<textarea
-							id="bio"
-							value={bio}
-							onChange={(e) => setBio(e.target.value)}
-							placeholder="Tell people a little about yourself"
-							rows={4}
-							maxLength={300}
-							style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, resize: "vertical" }}
-						/>
-					</div>
-
-					<button
-						type="submit"
-						style={{
-							padding: "10px 0",
-							borderRadius: 8,
-							border: "none",
-							background: "#111",
-							color: "#fff",
-							fontSize: 14,
-							fontWeight: 600,
-							cursor: "pointer",
-						}}
-					>
-						{saved ? "Saved!" : "Save changes"}
-					</button>
-				</form>
+				<Card>
+					<CardHeader className="text-center">
+						<div className="flex justify-center mb-2">
+							<div className="relative">
+								<Avatar className="size-20">
+									<AvatarImage src={profile?.profilePictureUrl ?? undefined} />
+									<AvatarFallback className="text-lg">{initials}</AvatarFallback>
+								</Avatar>
+								<Button
+									variant="outline"
+									size="sm"
+									className="absolute -bottom-2 -right-2 size-8 rounded-full p-0"
+									onClick={() => fileInputRef.current?.click()}
+									disabled={uploadingPicture}
+									type="button"
+								>
+									{uploadingPicture ? "…" : "✎"}
+								</Button>
+								<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureSelect} />
+							</div>
+						</div>
+						<CardTitle className="text-xl">{profile?.displayName || "Your Profile"}</CardTitle>
+						<CardDescription>{profile?.email}</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<form onSubmit={handleSave} className="flex flex-col gap-4">
+							{success && (
+								<Alert>
+									<AlertDescription>{success}</AlertDescription>
+								</Alert>
+							)}
+							{error && (
+								<Alert variant="destructive">
+									<AlertDescription>{error}</AlertDescription>
+								</Alert>
+							)}
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="display-name">Display Name</Label>
+								<Input
+									id="display-name"
+									type="text"
+									value={displayName}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)}
+									required
+								/>
+							</div>
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="bio">Bio</Label>
+								<Textarea
+									id="bio"
+									placeholder="Tell people a little about yourself…"
+									value={bio}
+									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBio(e.target.value)}
+									maxLength={160}
+									rows={3}
+								/>
+								<p className="text-xs text-muted-foreground text-right">{bio.length}/160</p>
+							</div>
+							<Button type="submit" className="w-full" disabled={saving || !displayName.trim()}>
+								{saving ? "Saving…" : "Save Changes"}
+							</Button>
+						</form>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	);
