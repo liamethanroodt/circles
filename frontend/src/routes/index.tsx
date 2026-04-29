@@ -1,13 +1,17 @@
 // React
 import { useState, useEffect, useRef } from "react";
 
-// Components`
-import { ConcentricRings } from "@/components/ConcentricRings";
+// Components
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConcentricRings } from "@/components/ConcentricRings";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Icons
+import { UserRound } from "lucide-react";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -47,7 +51,6 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-	const { email, logout } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const [circles, setCircles] = useState<Circle[]>([]);
 	const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
@@ -57,7 +60,7 @@ function HomePage() {
 	const [newPostValue, setNewPostValue] = useState("");
 	const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 	const [uploading, setUploading] = useState(false);
-	const [lightboxItem, setLightboxItem] = useState<{ url: string; mediaType: string } | null>(null);
+	const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "webm"];
@@ -194,51 +197,31 @@ function HomePage() {
 
 	useEffect(() => {
 		fetchCircles();
-	}, []);
-
-	// Close lightbox on Escape key
-	useEffect(() => {
-		const handler = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setLightboxItem(null);
-		};
-		window.addEventListener("keydown", handler);
-		return () => window.removeEventListener("keydown", handler);
+		fetch("/api/auth/me")
+			.then((r) => (r.ok ? r.json() : null))
+			.then((data) => {
+				if (data?.profilePictureUrl) setProfilePictureUrl(data.profilePictureUrl);
+			})
+			.catch(() => {});
 	}, []);
 
 	return (
-		<div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-[#1a1a2e] to-[#16213e] text-white">
-			<header className="px-8 pt-10 pb-6">
+		<div className="w-full min-h-screen flex flex-col">
+			<header className="px-8 pt-10 pb-6 border-b border-gray-200">
 				<div className="flex justify-between items-center max-w-[1400px] w-full mx-auto">
-					<h1 className="text-2xl font-bold bg-gradient-to-br from-[#7c92f5] to-[#8b5ecf] bg-clip-text text-transparent m-0">Circles</h1>
-					<div className="flex items-center gap-4">
-						<span className="text-sm text-slate-400 font-medium">{email}</span>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={logout}
-							className="border-white/10 bg-white/[0.08] text-slate-300 hover:bg-red-500/15 hover:border-red-500 hover:text-red-400"
-						>
-							Sign Out
-						</Button>
-					</div>
+					<h1 className="text-2xl font-bold m-0">Circles</h1>
 				</div>
 			</header>
-
-			<button onClick={() => navigate({ to: "/profile", viewTransition: true })}>test</button>
-			<ConcentricRings>
-				<div
-					style={
-						{
-							backgroundColor: "red",
-							borderRadius: 999,
-							width: 75,
-							height: 75,
-							viewTransitionName: "red-circle",
-						} as React.CSSProperties
-					}
-				/>
-			</ConcentricRings>
-
+			<div className="flex justify-center m-10">
+				<ConcentricRings>
+					<Avatar size="lg" className="size-[75px] cursor-pointer" onClick={() => navigate({ to: "/profile", viewTransition: true })}>
+						<AvatarImage src={profilePictureUrl ?? undefined} />
+						<AvatarFallback>
+							<UserRound className="size-8" />
+						</AvatarFallback>
+					</Avatar>
+				</ConcentricRings>
+			</div>
 			<main className="flex-1 max-w-[1400px] w-full mx-auto px-8 pb-8">
 				{error && (
 					<Alert variant="destructive" aria-live="polite" className="my-4">
@@ -250,10 +233,9 @@ function HomePage() {
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
-
 				<div className="grid grid-cols-2 gap-6 w-full max-lg:grid-cols-1">
 					<section aria-labelledby="circles-heading">
-						<Card className="bg-[rgba(30,30,46,0.95)] border-white/10 text-white backdrop-blur-sm">
+						<Card>
 							<CardHeader>
 								<CardTitle id="circles-heading" className="text-xl">
 									Your Circles
@@ -267,39 +249,29 @@ function HomePage() {
 										onChange={(e) => setNewCircleName(e.target.value)}
 										placeholder="New circle name..."
 										maxLength={200}
-										className="bg-[rgba(45,45,60,0.8)] border-white/10 text-white placeholder:text-slate-500"
 									/>
-									<Button
-										type="submit"
-										disabled={!newCircleName.trim()}
-										className="bg-gradient-to-br from-[#7c92f5] to-[#8b5ecf] border-0 text-white font-semibold"
-									>
+									<Button type="submit" disabled={!newCircleName.trim()}>
 										Create Circle
 									</Button>
 								</form>
-
 								<div className="flex flex-col gap-2">
 									{circles.map((circle) => (
-										<button
+										<Button
 											key={circle.id}
+											variant={selectedCircle?.id === circle.id ? "default" : "outline"}
+											className="w-full justify-start"
 											onClick={() => selectCircle(circle)}
-											className={`px-4 py-3 rounded-lg text-left text-sm font-medium transition-all border cursor-pointer ${
-												selectedCircle?.id === circle.id
-													? "bg-gradient-to-br from-[#7c92f5] to-[#8b5ecf] border-transparent text-white"
-													: "bg-[rgba(45,45,60,0.8)] border-white/10 text-white hover:bg-[rgba(124,146,245,0.1)] hover:border-[#7c92f5] hover:translate-x-1"
-											}`}
 										>
 											{circle.name}
-										</button>
+										</Button>
 									))}
 								</div>
 							</CardContent>
 						</Card>
 					</section>
-
 					{selectedCircle && (
 						<section aria-labelledby="posts-heading">
-							<Card className="bg-[rgba(30,30,46,0.95)] border-white/10 text-white backdrop-blur-sm">
+							<Card>
 								<CardHeader>
 									<CardTitle id="posts-heading" className="text-xl">
 										Posts in {selectedCircle.name}
@@ -313,16 +285,15 @@ function HomePage() {
 											placeholder="What's on your mind?"
 											rows={3}
 											disabled={uploading}
-											className="bg-[rgba(45,45,60,0.8)] border-white/10 text-white placeholder:text-slate-500 resize-y"
+											className="resize-y"
 										/>
-
 										{/* Pending file previews */}
 										{pendingFiles.length > 0 && (
 											<div className="flex flex-wrap gap-2" role="list" aria-label="Files to attach">
 												{pendingFiles.map((pf, i) => (
 													<div
 														key={i}
-														className="relative w-20 h-20 rounded-lg overflow-hidden border border-white/10 shrink-0"
+														className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 shrink-0"
 														role="listitem"
 													>
 														{pf.mediaType === "image" ? (
@@ -330,20 +301,21 @@ function HomePage() {
 														) : (
 															<video src={pf.previewUrl} muted className="w-full h-full object-cover block" />
 														)}
-														<button
+														<Button
 															type="button"
+															variant="secondary"
+															size="icon"
 															onClick={() => removePendingFile(i)}
 															aria-label={`Remove ${pf.file.name}`}
 															disabled={uploading}
-															className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white border-none text-[0.65rem] cursor-pointer flex items-center justify-center hover:bg-red-500/90 transition-colors"
+															className="absolute top-0.5 right-0.5 size-5 rounded-full text-[0.65rem]"
 														>
 															✕
-														</button>
+														</Button>
 													</div>
 												))}
 											</div>
 										)}
-
 										<div className="flex gap-3 items-center">
 											<Button
 												type="button"
@@ -351,7 +323,7 @@ function HomePage() {
 												onClick={() => fileInputRef.current?.click()}
 												disabled={uploading}
 												aria-label="Attach images or videos"
-												className="flex items-center gap-2 border-white/10 bg-[rgba(45,45,60,0.8)] text-slate-300 hover:border-[#7c92f5] hover:text-white shrink-0 text-xs font-semibold"
+												className="flex items-center gap-2 shrink-0 text-xs font-semibold"
 											>
 												<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
 													<rect x="3" y="3" width="18" height="18" rx="2" />
@@ -369,15 +341,11 @@ function HomePage() {
 												className="sr-only"
 												aria-hidden="true"
 											/>
-											<Button
-												type="submit"
-												disabled={!newPostValue.trim() || uploading}
-												className="bg-gradient-to-br from-[#7c92f5] to-[#8b5ecf] border-0 text-white font-semibold flex items-center gap-2"
-											>
+											<Button type="submit" disabled={!newPostValue.trim() || uploading} className="flex items-center gap-2">
 												{uploading ? (
 													<>
 														<span
-															className="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"
+															className="inline-block w-3.5 h-3.5 border-2 border-current/40 border-t-current rounded-full animate-spin"
 															aria-hidden="true"
 														/>
 														Uploading…
@@ -388,11 +356,10 @@ function HomePage() {
 											</Button>
 										</div>
 									</form>
-
 									<div className="flex flex-col gap-2">
 										{posts.map((post) => (
-											<article key={post.id} className="p-4 bg-[rgba(45,45,60,0.8)] border border-white/10 rounded-lg">
-												<p className="m-0 text-slate-300 leading-relaxed break-words">{post.value}</p>
+											<article key={post.id} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+												<p className="m-0 text-gray-700 leading-relaxed break-words">{post.value}</p>
 												{post.media && post.media.length > 0 && (
 													<div
 														className={`grid gap-[3px] mt-3 rounded-lg overflow-hidden ${
@@ -408,29 +375,18 @@ function HomePage() {
 														{post.media.map((m, idx) => (
 															<button
 																key={m.id}
-																onClick={() => setLightboxItem({ url: m.blobUrl, mediaType: m.mediaType })}
 																aria-label={`View ${m.mediaType}`}
 																role="listitem"
-																className={`block w-full h-full overflow-hidden cursor-pointer border-none p-0 relative min-h-[120px] bg-[rgba(45,45,60,0.8)] group ${
+																className={`block w-full h-full overflow-hidden cursor-pointer border-none p-0 relative min-h-[120px] bg-gray-100 group ${
 																	post.media.length === 3 && idx === 0 ? "row-span-2" : ""
 																}`}
 															>
-																{m.mediaType === "image" ? (
+																{m.mediaType === "image" && (
 																	<img
 																		src={m.blobUrl}
 																		alt=""
 																		className="w-full h-full object-cover block group-hover:scale-[1.04] transition-transform"
 																	/>
-																) : (
-																	<div className="relative w-full h-full">
-																		<video src={m.blobUrl} muted preload="metadata" className="w-full h-full object-cover block" />
-																		<span
-																			className="absolute inset-0 flex items-center justify-center text-[1.75rem] text-white bg-black/35 group-hover:bg-black/50 transition-colors pointer-events-none"
-																			aria-hidden="true"
-																		>
-																			▶
-																		</span>
-																	</div>
 																)}
 															</button>
 														))}
@@ -445,31 +401,6 @@ function HomePage() {
 					)}
 				</div>
 			</main>
-
-			{/* Lightbox */}
-			{lightboxItem && (
-				<div
-					className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4"
-					onClick={() => setLightboxItem(null)}
-					role="dialog"
-					aria-modal="true"
-					aria-label="Media viewer"
-				>
-					<button
-						className="fixed top-4 right-4 w-10 h-10 rounded-full bg-white/15 text-white border border-white/20 text-base cursor-pointer flex items-center justify-center z-[1001] hover:bg-white/25 transition-colors"
-						onClick={() => setLightboxItem(null)}
-						aria-label="Close"
-					>
-						✕
-					</button>
-					<div
-						className="max-w-[min(90vw,1200px)] max-h-[90vh] flex items-center justify-center [&_img]:max-w-full [&_img]:max-h-[90vh] [&_img]:rounded-lg [&_img]:object-contain [&_img]:shadow-2xl [&_video]:max-w-full [&_video]:max-h-[90vh] [&_video]:rounded-lg"
-						onClick={(e) => e.stopPropagation()}
-					>
-						{lightboxItem.mediaType === "image" ? <img src={lightboxItem.url} alt="Full size media" /> : <video src={lightboxItem.url} controls autoPlay />}
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

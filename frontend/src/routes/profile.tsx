@@ -30,6 +30,7 @@ interface UserProfile {
 }
 
 function ProfilePage() {
+	const { logout } = Route.useRouteContext();
 	const navigate = useNavigate();
 	const [profile, setProfile] = useState<UserProfile | null>(null);
 	const [displayName, setDisplayName] = useState("");
@@ -120,9 +121,14 @@ function ProfilePage() {
 	return (
 		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
 			<div className="flex w-full max-w-sm flex-col gap-6">
-				<Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/", viewTransition: true })}>
-					← Back
-				</Button>
+				<div className="flex justify-between items-center">
+					<Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/", viewTransition: true })}>
+						← Back
+					</Button>
+					<Button variant="outline" size="sm" onClick={logout}>
+						Sign Out
+					</Button>
+				</div>
 
 				<Card>
 					<CardHeader className="text-center">

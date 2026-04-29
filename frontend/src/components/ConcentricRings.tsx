@@ -40,7 +40,7 @@ export function ConcentricRings({ children }: Props) {
 						left: CENTER - ring.radius,
 						top: CENTER - ring.radius,
 						borderRadius: "50%",
-						border: "3px solid rgba(0,0,0,0.25)",
+						border: "1px solid rgba(0,0,0,0.25)",
 						pointerEvents: "none",
 					}}
 				/>
