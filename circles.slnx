@@ -1,7 +1,7 @@
 <Solution>
   <Project Path="circles.AppHost/circles.AppHost.csproj" />
   <Project Path="circles.Server/circles.Server.csproj" />
-  <Project Path="frontend/circles.Frontend.esproj">
+  <Project Path="circles.Frontend/circles.Frontend.esproj">
     <Build />
     <Deploy />
   </Project>

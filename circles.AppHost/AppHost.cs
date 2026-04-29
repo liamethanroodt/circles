@@ -20,7 +20,7 @@ var server = builder.AddProject<Projects.circles_Server>("server")
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
 
-var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
+var webfrontend = builder.AddViteApp("webfrontend", "../circles.Frontend")
     .WithReference(server)
     .WaitFor(server);
 
