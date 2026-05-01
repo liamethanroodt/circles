@@ -3,6 +3,7 @@ using Azure.Storage.Blobs.Models;
 using circles.Server.Data;
 using circles.Server.Features.Auth.Endpoints;
 using circles.Server.Features.Auth.Models;
+using circles.Server.Features.Auth.Services;
 using circles.Server.Features.Circles.Endpoints;
 using circles.Server.Features.Posts.Endpoints;
 using Microsoft.AspNetCore.Identity;
@@ -22,6 +23,15 @@ builder.AddAzureBlobServiceClient("blobs");
 builder.Services.AddDbContext<CirclesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("circlesdb")));
 
+// Bind SMTP settings from the "SmtpSettings" configuration section.
+// In development these are partially overridden by the MailPit connection string that
+// .NET Aspire injects; in production set real SMTP values here or via environment variables.
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+
+// Register our MailKit-based email sender. ASP.NET Core Identity resolves
+// IEmailSender<ApplicationUser> internally and we also inject it explicitly in endpoints.
+builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSender>();
+
 // Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -30,6 +40,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
+    options.SignIn.RequireConfirmedEmail = true;
 })
 .AddEntityFrameworkStores<CirclesDbContext>()
 .AddDefaultTokenProviders();

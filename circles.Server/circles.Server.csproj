@@ -10,6 +10,7 @@
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.2.4" />
     <PackageReference Include="Aspire.Microsoft.Data.SqlClient" Version="13.2.4" />
     <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="13.2.4" />
+    <PackageReference Include="MailKit" Version="4.16.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">

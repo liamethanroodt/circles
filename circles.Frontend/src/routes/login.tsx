@@ -21,16 +21,22 @@ export const Route = createFileRoute("/login")({
 			throw redirect({ to: "/" });
 		}
 	},
+	// Validate the optional ?confirmed=true query param placed by /confirm-email on success.
+	validateSearch: (search: Record<string, unknown>) => ({
+		confirmed: search.confirmed === true || search.confirmed === "true",
+	}),
 	component: LoginPage,
 });
 
 function LoginPage() {
 	const { checkAuth } = Route.useRouteContext();
+	const { confirmed } = Route.useSearch();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [displayName, setDisplayName] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
+	const [emailUnconfirmed, setEmailUnconfirmed] = useState(false);
+	const [success, setSuccess] = useState<string | null>(confirmed ? "Email confirmed! You can now sign in." : null);
 	const [loading, setLoading] = useState(false);
 	const [activeTab, setActiveTab] = useState("login");
 
@@ -38,6 +44,7 @@ function LoginPage() {
 		e.preventDefault();
 		setError(null);
 		setSuccess(null);
+		setEmailUnconfirmed(false);
 		setLoading(true);
 
 		const isLogin = activeTab === "login";
@@ -55,14 +62,20 @@ function LoginPage() {
 			const data = await response.json();
 
 			if (!response.ok) {
+				// The server returns emailUnconfirmed: true when the password is correct but
+				// the user hasn't clicked their confirmation link yet. Show a softer message.
+				if (data.emailUnconfirmed) {
+					setEmailUnconfirmed(true);
+				}
 				throw new Error(data.errors?.[0] || "Something went wrong.");
 			}
 
 			if (isLogin) {
 				checkAuth(email);
 			} else {
-				setActiveTab("login");
-				setSuccess("Account created! Sign in with your credentials.");
+				// Stay on the register tab and show the check-your-email message.
+				// Don't switch to the login tab — the user can't sign in yet.
+				setSuccess("Account created! Please check your email to confirm your address before signing in.");
 			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "An error occurred.");
@@ -87,6 +100,7 @@ function LoginPage() {
 						setActiveTab(v);
 						setError(null);
 						setSuccess(null);
+						setEmailUnconfirmed(false);
 					}}
 				>
 					<TabsList className="grid w-full grid-cols-2">
@@ -107,7 +121,7 @@ function LoginPage() {
 										</Alert>
 									)}
 									{error && (
-										<Alert variant="destructive">
+										<Alert variant={emailUnconfirmed ? "default" : "destructive"}>
 											<AlertDescription>{error}</AlertDescription>
 										</Alert>
 									)}
@@ -150,6 +164,11 @@ function LoginPage() {
 							</CardHeader>
 							<CardContent>
 								<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+									{success && (
+										<Alert>
+											<AlertDescription>{success}</AlertDescription>
+										</Alert>
+									)}
 									{error && (
 										<Alert variant="destructive">
 											<AlertDescription>{error}</AlertDescription>
