@@ -13,6 +13,8 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ConfirmEmailRouteImport } from './routes/confirm-email'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CirclesNewRouteImport } from './routes/circles.new'
+import { Route as CirclesCircleNameRouteImport } from './routes/circles.$circleName'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -34,18 +36,32 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CirclesNewRoute = CirclesNewRouteImport.update({
+  id: '/circles/new',
+  path: '/circles/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CirclesCircleNameRoute = CirclesCircleNameRouteImport.update({
+  id: '/circles/$circleName',
+  path: '/circles/$circleName',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/confirm-email': typeof ConfirmEmailRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/circles/$circleName': typeof CirclesCircleNameRoute
+  '/circles/new': typeof CirclesNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/confirm-email': typeof ConfirmEmailRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/circles/$circleName': typeof CirclesCircleNameRoute
+  '/circles/new': typeof CirclesNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +69,34 @@ export interface FileRoutesById {
   '/confirm-email': typeof ConfirmEmailRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/circles/$circleName': typeof CirclesCircleNameRoute
+  '/circles/new': typeof CirclesNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/confirm-email' | '/login' | '/profile'
+  fullPaths:
+    | '/'
+    | '/confirm-email'
+    | '/login'
+    | '/profile'
+    | '/circles/$circleName'
+    | '/circles/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/confirm-email' | '/login' | '/profile'
-  id: '__root__' | '/' | '/confirm-email' | '/login' | '/profile'
+  to:
+    | '/'
+    | '/confirm-email'
+    | '/login'
+    | '/profile'
+    | '/circles/$circleName'
+    | '/circles/new'
+  id:
+    | '__root__'
+    | '/'
+    | '/confirm-email'
+    | '/login'
+    | '/profile'
+    | '/circles/$circleName'
+    | '/circles/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +104,8 @@ export interface RootRouteChildren {
   ConfirmEmailRoute: typeof ConfirmEmailRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  CirclesCircleNameRoute: typeof CirclesCircleNameRoute
+  CirclesNewRoute: typeof CirclesNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +138,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/circles/new': {
+      id: '/circles/new'
+      path: '/circles/new'
+      fullPath: '/circles/new'
+      preLoaderRoute: typeof CirclesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/circles/$circleName': {
+      id: '/circles/$circleName'
+      path: '/circles/$circleName'
+      fullPath: '/circles/$circleName'
+      preLoaderRoute: typeof CirclesCircleNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +160,8 @@ const rootRouteChildren: RootRouteChildren = {
   ConfirmEmailRoute: ConfirmEmailRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  CirclesCircleNameRoute: CirclesCircleNameRoute,
+  CirclesNewRoute: CirclesNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
