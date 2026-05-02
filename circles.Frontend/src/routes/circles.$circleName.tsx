@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from "react";
 // Components
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X, LogOut } from "lucide-react";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -59,6 +60,8 @@ function CirclePostsPage() {
 	const [newPostValue, setNewPostValue] = useState("");
 	const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 	const [uploading, setUploading] = useState(false);
+	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+	const [leaving, setLeaving] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const fetchData = async () => {
@@ -155,14 +158,55 @@ function CirclePostsPage() {
 		}
 	};
 
+	const leaveCircle = async () => {
+		if (!circle) return;
+		setLeaving(true);
+		try {
+			const res = await fetch(`/api/circles/${circle.id}/leave`, { method: "DELETE" });
+			if (!res.ok) throw new Error("Failed to leave circle");
+			navigate({ to: "/" });
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to leave circle");
+			setLeaveDialogOpen(false);
+		} finally {
+			setLeaving(false);
+		}
+	};
+
 	return (
 		<div className="w-full min-h-screen flex flex-col">
+			<Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Leave "{circle?.name}"?</DialogTitle>
+						<DialogDescription>
+							You'll no longer have access to this circle or its posts. If you're the only member, the circle will be deleted.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setLeaveDialogOpen(false)} disabled={leaving}>
+							Cancel
+						</Button>
+						<Button variant="destructive" onClick={leaveCircle} disabled={leaving}>
+							{leaving ? "Leaving…" : "Leave circle"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
 				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
 					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
 						<ArrowLeft className="size-5" />
 					</Button>
 					<h1 className="text-lg font-semibold m-0 flex-1">{circle?.name ?? "…"}</h1>
+					<Button
+						size="icon"
+						variant="ghost"
+						onClick={() => setLeaveDialogOpen(true)}
+						aria-label="Leave circle"
+					>
+						<LogOut className="size-5" />
+					</Button>
 					<Button
 						size="icon"
 						variant="ghost"

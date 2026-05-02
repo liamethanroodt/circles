@@ -8,7 +8,10 @@ import { ConcentricRings } from "@/components/ConcentricRings";
 import type { CircleRingData } from "@/components/ConcentricRings";
 
 // Icons
-import { UserRound } from "lucide-react";
+import { UserRound, CirclePlus } from "lucide-react";
+
+// UI
+import { Button } from "@/components/ui/button";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -44,6 +47,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
 	const navigate = useNavigate();
 	const [circleRings, setCircleRings] = useState<CircleRingData[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
@@ -77,6 +81,8 @@ function HomePage() {
 				setCircleRings(rings);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load circles");
+			} finally {
+				setLoading(false);
 			}
 		};
 
@@ -103,21 +109,37 @@ function HomePage() {
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
-				<ConcentricRings
-					circles={circleRings}
-					onCreateCircle={() => navigate({ to: "/circles/new" })}
-					onCircleClick={(id) => {
-						const ring = circleRings.find((r) => r.id === id);
-						if (ring) navigate({ to: "/circles/$circleName", params: { circleName: ring.name } });
-					}}
-				>
-					<Avatar size="lg" className="size-[75px] cursor-pointer" onClick={() => navigate({ to: "/profile", viewTransition: true })}>
-						<AvatarImage src={profilePictureUrl ?? undefined} />
-						<AvatarFallback>
-							<UserRound className="size-8" />
-						</AvatarFallback>
-					</Avatar>
-				</ConcentricRings>
+				{!loading && (
+					<ConcentricRings
+						circles={circleRings}
+						onCreateCircle={() => navigate({ to: "/circles/new" })}
+						onCircleClick={(id) => {
+							const ring = circleRings.find((r) => r.id === id);
+							if (ring) navigate({ to: "/circles/$circleName", params: { circleName: ring.name } });
+						}}
+					>
+						<Avatar size="lg" className="size-[75px] cursor-pointer" onClick={() => navigate({ to: "/profile", viewTransition: true })}>
+							<AvatarImage src={profilePictureUrl ?? undefined} />
+							<AvatarFallback>
+								<UserRound className="size-8" />
+							</AvatarFallback>
+						</Avatar>
+					</ConcentricRings>
+				)}
+				{!loading && !error && circleRings.length === 0 && (
+					<div className="flex flex-col items-center gap-4 text-center max-w-sm">
+						<div>
+							<h2 className="text-lg font-semibold">You're not in any circles yet</h2>
+							<p className="text-sm text-muted-foreground mt-1">
+								Circles are private groups where you share posts with the people who matter most. Create your first circle to get started.
+							</p>
+						</div>
+						<Button onClick={() => navigate({ to: "/circles/new" })}>
+							<CirclePlus className="size-4" />
+							Create a circle
+						</Button>
+					</div>
+				)}
 			</main>
 		</div>
 	);

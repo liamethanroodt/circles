@@ -13,12 +13,24 @@ public class CirclesDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Circle> Circles => Set<Circle>();
+    public DbSet<CircleMember> CircleMembers => Set<CircleMember>();
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<PostMedia> PostMedia => Set<PostMedia>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<CircleMember>(entity =>
+        {
+            entity.HasKey(e => new { e.CircleId, e.UserId });
+            entity.Property(e => e.Role).IsRequired();
+            entity.Property(e => e.JoinedAt).IsRequired();
+            entity.HasOne(e => e.Circle)
+                .WithMany()
+                .HasForeignKey(e => e.CircleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<Circle>(entity =>
         {
