@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
-import { ArrowLeft, Plus, X, LogOut } from "lucide-react";
+import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List } from "lucide-react";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -62,6 +62,8 @@ function CirclePostsPage() {
 	const [uploading, setUploading] = useState(false);
 	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 	const [leaving, setLeaving] = useState(false);
+	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const fetchData = async () => {
@@ -202,17 +204,15 @@ function CirclePostsPage() {
 					<Button
 						size="icon"
 						variant="ghost"
-						onClick={() => setLeaveDialogOpen(true)}
-						aria-label="Leave circle"
+						onClick={() => setViewMode((v) => (v === "grid" ? "list" : "grid"))}
+						aria-label={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
 					>
+						{viewMode === "grid" ? <List className="size-5" /> : <LayoutGrid className="size-5" />}
+					</Button>
+					<Button size="icon" variant="ghost" onClick={() => setLeaveDialogOpen(true)} aria-label="Leave circle">
 						<LogOut className="size-5" />
 					</Button>
-					<Button
-						size="icon"
-						variant="ghost"
-						onClick={() => setShowForm((v) => !v)}
-						aria-label={showForm ? "Cancel" : "New post"}
-					>
+					<Button size="icon" variant="ghost" onClick={() => setShowForm((v) => !v)} aria-label={showForm ? "Cancel" : "New post"}>
 						{showForm ? <X className="size-5" /> : <Plus className="size-5" />}
 					</Button>
 				</div>
@@ -223,7 +223,6 @@ function CirclePostsPage() {
 						<AlertDescription>{error}</AlertDescription>
 					</Alert>
 				)}
-
 				{/* New post form */}
 				{showForm && (
 					<form onSubmit={createPost} className="flex flex-col gap-3 pb-4 border-b border-gray-200">
@@ -260,14 +259,7 @@ function CirclePostsPage() {
 							</div>
 						)}
 						<div className="flex gap-2 items-center">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() => fileInputRef.current?.click()}
-								disabled={uploading}
-								className="text-xs"
-							>
+							<Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="text-xs">
 								{pendingFiles.length > 0 ? `${pendingFiles.length} file${pendingFiles.length > 1 ? "s" : ""}` : "Attach media"}
 							</Button>
 							<input
@@ -285,8 +277,36 @@ function CirclePostsPage() {
 						</div>
 					</form>
 				)}
-
-				{/* Instagram-like grid */}
+				{/* Post detail modal */}
+				<Dialog
+					open={!!selectedPost}
+					onOpenChange={(open) => {
+						if (!open) setSelectedPost(null);
+					}}
+				>
+					<DialogContent className="max-w-lg p-0 overflow-hidden">
+						<DialogHeader className="sr-only">
+							<DialogTitle>Post</DialogTitle>
+						</DialogHeader>
+						{selectedPost &&
+							(() => {
+								const firstImage = selectedPost.media.find((m) => m.mediaType === "image");
+								const firstVideo = selectedPost.media.find((m) => m.mediaType === "video");
+								return (
+									<>
+										{firstImage && <img src={firstImage.blobUrl} alt="" className="w-full max-h-[60vh] object-contain bg-black" />}
+										{firstVideo && <video src={firstVideo.blobUrl} controls className="w-full max-h-[60vh] bg-black" />}
+										{selectedPost.value && (
+											<div className="p-4">
+												<p className="text-sm whitespace-pre-wrap">{selectedPost.value}</p>
+											</div>
+										)}
+									</>
+								);
+							})()}
+					</DialogContent>
+				</Dialog>
+				{/* Posts */}
 				{posts.length === 0 && !showForm ? (
 					<div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
 						<p className="text-sm">No posts yet</p>
@@ -294,22 +314,15 @@ function CirclePostsPage() {
 							Create the first post
 						</Button>
 					</div>
-				) : (
+				) : viewMode === "grid" ? (
 					<div className="grid grid-cols-3 gap-[3px]">
 						{posts.map((post) => {
 							const firstImage = post.media.find((m) => m.mediaType === "image");
 							const firstVideo = post.media.find((m) => m.mediaType === "video");
 							return (
-								<div
-									key={post.id}
-									className="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer group"
-								>
+								<div key={post.id} className="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer" onClick={() => setSelectedPost(post)}>
 									{firstImage ? (
-										<img
-											src={firstImage.blobUrl}
-											alt=""
-											className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-200"
-										/>
+										<img src={firstImage.blobUrl} alt="" className="w-full h-full object-cover" />
 									) : firstVideo ? (
 										<video src={firstVideo.blobUrl} muted className="w-full h-full object-cover" />
 									) : (
@@ -322,6 +335,20 @@ function CirclePostsPage() {
 											1/{post.media.length}
 										</div>
 									)}
+								</div>
+							);
+						})}
+					</div>
+				) : (
+					<div className="flex flex-col divide-y divide-gray-100">
+						{posts.map((post) => {
+							const firstImage = post.media.find((m) => m.mediaType === "image");
+							const firstVideo = post.media.find((m) => m.mediaType === "video");
+							return (
+								<div key={post.id} className="flex flex-col py-4 gap-3">
+									{firstImage && <img src={firstImage.blobUrl} alt="" className="w-full rounded-lg object-cover max-h-[480px]" />}
+									{firstVideo && <video src={firstVideo.blobUrl} controls className="w-full rounded-lg max-h-[480px] bg-black" />}
+									{post.value && <p className="text-sm whitespace-pre-wrap">{post.value}</p>}
 								</div>
 							);
 						})}
