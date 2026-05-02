@@ -10,9 +10,9 @@ import { Plus } from "lucide-react";
 
 const AVATAR_SIZE = 32; // px — matches shadcn default size-8
 const HALF = AVATAR_SIZE / 2;
-const CREATE_RING_RADIUS = 80;
-const FIRST_CIRCLE_RADIUS = 150;
-const RADIUS_STEP = 70;
+const CREATE_RING_RADIUS = 140;
+const FIRST_CIRCLE_RADIUS = 200;
+const RADIUS_STEP = 60;
 const MAX_AVATARS_PER_RING = 6;
 
 export interface PostAvatar {
@@ -198,6 +198,7 @@ export function ConcentricRings({ circles, onCreateCircle, onCircleClick, childr
 							const rad = (angle * Math.PI) / 180;
 							const x = ring.radius * Math.cos(rad) - HALF;
 							const y = ring.radius * Math.sin(rad) - HALF;
+
 							return (
 								<Tooltip key={post.id}>
 									<TooltipTrigger asChild>

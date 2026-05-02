@@ -16,7 +16,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 export const Route = createFileRoute("/profile")({
 	beforeLoad: ({ context }) => {
 		if (!context.isAuthenticated) {
-			throw redirect({ to: "/login" });
+			throw redirect({ to: "/login", search: { confirmed: false } });
 		}
 	},
 	component: ProfilePage,

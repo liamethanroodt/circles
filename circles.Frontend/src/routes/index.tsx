@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 
 // Components
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConcentricRings } from "@/components/ConcentricRings";
 import type { CircleRingData } from "@/components/ConcentricRings";
 
@@ -118,12 +117,16 @@ function HomePage() {
 							if (ring) navigate({ to: "/circles/$circleName", params: { circleName: ring.name } });
 						}}
 					>
-						<Avatar size="lg" className="size-[75px] cursor-pointer" onClick={() => navigate({ to: "/profile", viewTransition: true })}>
-							<AvatarImage src={profilePictureUrl ?? undefined} />
-							<AvatarFallback>
-								<UserRound className="size-8" />
-							</AvatarFallback>
-						</Avatar>
+						<div
+							className="size-[160px] rounded-full overflow-hidden cursor-pointer shrink-0 bg-muted border border-border flex items-center justify-center"
+							onClick={() => navigate({ to: "/profile", viewTransition: true })}
+						>
+							{profilePictureUrl ? (
+								<img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
+							) : (
+								<UserRound className="size-16 text-muted-foreground" />
+							)}
+						</div>
 					</ConcentricRings>
 				)}
 				{!loading && !error && circleRings.length === 0 && (
