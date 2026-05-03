@@ -119,7 +119,8 @@ function HomePage() {
 					>
 						<div
 							className="size-[160px] rounded-full overflow-hidden cursor-pointer shrink-0 bg-muted border border-border flex items-center justify-center"
-							onClick={() => navigate({ to: "/profile", viewTransition: true })}
+							// onClick={() => navigate({ to: "/profile", viewTransition: true })}
+							onClick={() => navigate({ to: "/profile" })}
 						>
 							{profilePictureUrl ? (
 								<img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />

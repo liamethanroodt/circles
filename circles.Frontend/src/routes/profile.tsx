@@ -122,7 +122,8 @@ function ProfilePage() {
 		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
 			<div className="flex w-full max-w-sm flex-col gap-6">
 				<div className="flex justify-between items-center">
-					<Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/", viewTransition: true })}>
+					{/* <Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/", viewTransition: true })}> */}
+					<Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/" })}>
 						← Back
 					</Button>
 					<Button variant="outline" size="sm" onClick={logout}>
@@ -157,7 +158,7 @@ function ProfilePage() {
 					<CardContent>
 						<form onSubmit={handleSave} className="flex flex-col gap-4">
 							{success && (
-								<Alert>
+								<Alert variant="success">
 									<AlertDescription>{success}</AlertDescription>
 								</Alert>
 							)}

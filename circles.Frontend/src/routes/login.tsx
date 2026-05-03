@@ -116,12 +116,12 @@ function LoginPage() {
 							<CardContent>
 								<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 									{success && (
-										<Alert>
+										<Alert variant="success">
 											<AlertDescription>{success}</AlertDescription>
 										</Alert>
 									)}
 									{error && (
-										<Alert variant={emailUnconfirmed ? "default" : "destructive"}>
+										<Alert variant="destructive">
 											<AlertDescription>{error}</AlertDescription>
 										</Alert>
 									)}
@@ -165,7 +165,7 @@ function LoginPage() {
 							<CardContent>
 								<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 									{success && (
-										<Alert>
+										<Alert variant="success">
 											<AlertDescription>{success}</AlertDescription>
 										</Alert>
 									)}

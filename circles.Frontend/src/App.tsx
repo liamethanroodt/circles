@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import { RouterProvider } from "@tanstack/react-router";
 import type { AnyRouter } from "@tanstack/react-router";
 
+// Icons
+import { Loader2 } from "lucide-react";
+
 // Styles
 import "./styles/App.css";
 
@@ -60,8 +63,8 @@ function App({ router }: AppProps) {
 
 	if (loading) {
 		return (
-			<div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a1a2e] to-[#16213e]">
-				<div className="w-9 h-9 rounded-full border-[3px] border-[rgba(124,146,245,0.2)] border-t-[#7c92f5] animate-spin" />
+			<div className="w-full min-h-screen flex items-center justify-center">
+				<Loader2 className="animate-spin" />
 			</div>
 		);
 	}
