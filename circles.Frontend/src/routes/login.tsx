@@ -33,7 +33,6 @@ function LoginPage() {
 	const [password, setPassword] = useState("");
 	const [displayName, setDisplayName] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const [emailUnconfirmed, setEmailUnconfirmed] = useState(false);
 	const [success, setSuccess] = useState<string | null>(confirmed ? "Email confirmed! You can now sign in." : null);
 	const [loading, setLoading] = useState(false);
 	const [mode, setMode] = useState<"login" | "register">("login");
@@ -44,14 +43,12 @@ function LoginPage() {
 		setMode(next);
 		setError(null);
 		setSuccess(null);
-		setEmailUnconfirmed(false);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError(null);
 		setSuccess(null);
-		setEmailUnconfirmed(false);
 		setLoading(true);
 
 		const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
@@ -68,11 +65,6 @@ function LoginPage() {
 			const data = await response.json();
 
 			if (!response.ok) {
-				// The server returns emailUnconfirmed: true when the password is correct but
-				// the user hasn't clicked their confirmation link yet. Show a softer message.
-				if (data.emailUnconfirmed) {
-					setEmailUnconfirmed(true);
-				}
 				throw new Error(data.errors?.[0] || "Something went wrong.");
 			}
 
