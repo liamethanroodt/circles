@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
-import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List } from "lucide-react";
+import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List, CircleDot } from "lucide-react";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -308,8 +308,14 @@ function CirclePostsPage() {
 				</Dialog>
 				{/* Posts */}
 				{posts.length === 0 && !showForm ? (
-					<div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-						<p className="text-sm">No posts yet</p>
+					<div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+						<div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
+							<CircleDot className="size-7" />
+						</div>
+						<div className="flex flex-col gap-1">
+							<p className="font-medium">{circle?.name}</p>
+							<p className="text-sm text-muted-foreground">No posts yet. Be the first to share something.</p>
+						</div>
 						<Button variant="outline" size="sm" onClick={() => setShowForm(true)}>
 							Create the first post
 						</Button>

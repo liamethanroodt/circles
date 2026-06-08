@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Icons
-import { Plus } from "lucide-react";
+import { CircleDot, Plus } from "lucide-react";
 
 const AVATAR_SIZE = 32; // px — matches shadcn default size-8
 const HALF = AVATAR_SIZE / 2;
@@ -87,7 +87,6 @@ export function ConcentricRings({ circles, onCreateCircle, onCircleClick, childr
 					transition: stroke-opacity 0.2s, stroke-width 0.2s;
 				}
 			`}</style>
-
 			{/* SVG layer for ring borders — stroke pointer-events lets us click only the ring line */}
 			<svg
 				style={{
@@ -130,10 +129,8 @@ export function ConcentricRings({ circles, onCreateCircle, onCircleClick, childr
 					</g>
 				))}
 			</svg>
-
 			{/* Center element */}
 			<div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}>{children}</div>
-
 			{/* Orbiting avatars */}
 			{allRings.map((ring) => {
 				const spinAnim = ring.clockwise ? "ring-spin-cw" : "ring-spin-ccw";
@@ -167,8 +164,8 @@ export function ConcentricRings({ circles, onCreateCircle, onCircleClick, childr
 										}}
 										onClick={onCreateCircle}
 									>
-										<Avatar className="border-2 border-dashed border-gray-400 bg-white hover:bg-gray-50 transition-colors">
-											<AvatarFallback className="bg-transparent">
+										<Avatar className="border border-dashed border-muted-foreground/40 bg-background hover:bg-muted transition-colors">
+											<AvatarFallback className="bg-transparent text-muted-foreground/60">
 												<Plus className="size-4" />
 											</AvatarFallback>
 										</Avatar>
@@ -181,6 +178,49 @@ export function ConcentricRings({ circles, onCreateCircle, onCircleClick, childr
 				}
 
 				const visiblePosts = ring.posts.slice(0, MAX_AVATARS_PER_RING);
+
+				if (visiblePosts.length === 0) {
+					const rad = (ring.baseAngle * Math.PI) / 180;
+					const x = ring.radius * Math.cos(rad) - HALF;
+					const y = ring.radius * Math.sin(rad) - HALF;
+
+					return (
+						<div
+							key={ring.id}
+							style={{
+								position: "absolute",
+								left: CENTER,
+								top: CENTER,
+								width: 0,
+								height: 0,
+								animation: `${spinAnim} ${ring.duration}s linear infinite`,
+							}}
+						>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div
+										style={{
+											position: "absolute",
+											left: x,
+											top: y,
+											animation: `${counterAnim} ${ring.duration}s linear infinite`,
+											cursor: "pointer",
+										}}
+										onClick={() => onCircleClick(ring.id)}
+									>
+										<Avatar className="border border-dashed border-muted-foreground/40 bg-background hover:bg-muted transition-colors">
+											<AvatarFallback className="bg-transparent text-muted-foreground/60">
+												<CircleDot className="size-4" />
+											</AvatarFallback>
+										</Avatar>
+									</div>
+								</TooltipTrigger>
+								<TooltipContent>{ring.name}</TooltipContent>
+							</Tooltip>
+						</div>
+					);
+				}
+
 				return (
 					<div
 						key={ring.id}
