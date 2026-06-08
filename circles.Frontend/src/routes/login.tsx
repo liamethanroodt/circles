@@ -4,10 +4,8 @@ import { useState } from "react";
 // Components
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Icons
 import { CircleDot } from "lucide-react";
@@ -38,7 +36,16 @@ function LoginPage() {
 	const [emailUnconfirmed, setEmailUnconfirmed] = useState(false);
 	const [success, setSuccess] = useState<string | null>(confirmed ? "Email confirmed! You can now sign in." : null);
 	const [loading, setLoading] = useState(false);
-	const [activeTab, setActiveTab] = useState("login");
+	const [mode, setMode] = useState<"login" | "register">("login");
+
+	const isLogin = mode === "login";
+
+	const switchMode = (next: "login" | "register") => {
+		setMode(next);
+		setError(null);
+		setSuccess(null);
+		setEmailUnconfirmed(false);
+	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -47,7 +54,6 @@ function LoginPage() {
 		setEmailUnconfirmed(false);
 		setLoading(true);
 
-		const isLogin = activeTab === "login";
 		const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
 		try {
@@ -73,8 +79,8 @@ function LoginPage() {
 			if (isLogin) {
 				checkAuth(email);
 			} else {
-				// Stay on the register tab and show the check-your-email message.
-				// Don't switch to the login tab — the user can't sign in yet.
+				// Stay on the register view and show the check-your-email message.
+				// Don't switch to login — the user can't sign in yet.
 				setSuccess("Account created! Please check your email to confirm your address before signing in.");
 			}
 		} catch (err) {
@@ -85,99 +91,53 @@ function LoginPage() {
 	};
 
 	return (
-		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-			<div className="flex w-full max-w-sm flex-col gap-6">
-				<div className="flex items-center gap-2 self-center font-medium">
-					<div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-						<CircleDot className="size-4" />
+		<div className="grid min-h-svh lg:grid-cols-2">
+			{/* Left column — branding panel, hidden on mobile */}
+			<div className="relative hidden bg-primary lg:flex lg:flex-col lg:items-center lg:justify-center p-10 text-primary-foreground">
+				<div className="flex flex-col items-center gap-6 text-center">
+					<div className="flex items-center gap-3">
+						<div className="flex size-12 items-center justify-center rounded-xl bg-primary-foreground text-primary">
+							<CircleDot className="size-7" />
+						</div>
+						<span className="text-3xl font-bold tracking-tight">Circles</span>
 					</div>
-					Circles
+					<p className="max-w-xs text-lg opacity-80">Share your thoughts and connect with the people that matter.</p>
 				</div>
-
-				<Tabs
-					value={activeTab}
-					onValueChange={(v: string) => {
-						setActiveTab(v);
-						setError(null);
-						setSuccess(null);
-						setEmailUnconfirmed(false);
-					}}
-				>
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="login">Sign In</TabsTrigger>
-						<TabsTrigger value="register">Create Account</TabsTrigger>
-					</TabsList>
-					<TabsContent value="login">
-						<Card>
-							<CardHeader className="text-center">
-								<CardTitle className="text-xl">Welcome back</CardTitle>
-								<CardDescription>Sign in to your Circles account</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-									{success && (
-										<Alert variant="success">
-											<AlertDescription>{success}</AlertDescription>
-										</Alert>
-									)}
-									{error && (
-										<Alert variant="destructive">
-											<AlertDescription>{error}</AlertDescription>
-										</Alert>
-									)}
+			</div>
+			{/* Right column — form, full width on mobile */}
+			<div className="flex flex-col gap-4 p-6 md:p-10">
+				{/* Logo shown only on mobile */}
+				<div className="flex justify-center lg:hidden">
+					<div className="flex items-center gap-2 font-medium">
+						<div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+							<CircleDot className="size-4" />
+						</div>
+						Circles
+					</div>
+				</div>
+				<div className="flex flex-1 items-center justify-center">
+					<div className="w-full max-w-sm">
+						<div className="flex flex-col gap-6">
+							<div className="text-center">
+								<h1 className="text-xl font-semibold">{isLogin ? "Welcome back" : "Create an account"}</h1>
+								<p className="text-sm text-muted-foreground">{isLogin ? "Sign in to your Circles account" : "Share your thoughts in circles"}</p>
+							</div>
+							<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+								{success && (
+									<Alert variant="success">
+										<AlertDescription>{success}</AlertDescription>
+									</Alert>
+								)}
+								{error && (
+									<Alert variant="destructive">
+										<AlertDescription>{error}</AlertDescription>
+									</Alert>
+								)}
+								{!isLogin && (
 									<div className="flex flex-col gap-2">
-										<Label htmlFor="login-email">Email</Label>
+										<Label htmlFor="display-name">Display Name</Label>
 										<Input
-											id="login-email"
-											type="email"
-											placeholder="you@example.com"
-											value={email}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-											required
-											autoComplete="email"
-										/>
-									</div>
-									<div className="flex flex-col gap-2">
-										<Label htmlFor="login-password">Password</Label>
-										<Input
-											id="login-password"
-											type="password"
-											placeholder="••••••••"
-											value={password}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-											required
-											autoComplete="current-password"
-										/>
-									</div>
-									<Button type="submit" className="w-full" disabled={loading || !email.trim() || !password.trim()}>
-										{loading ? "Signing in…" : "Sign In"}
-									</Button>
-								</form>
-							</CardContent>
-						</Card>
-					</TabsContent>
-					<TabsContent value="register">
-						<Card>
-							<CardHeader className="text-center">
-								<CardTitle className="text-xl">Create an account</CardTitle>
-								<CardDescription>Share your thoughts in circles</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-									{success && (
-										<Alert variant="success">
-											<AlertDescription>{success}</AlertDescription>
-										</Alert>
-									)}
-									{error && (
-										<Alert variant="destructive">
-											<AlertDescription>{error}</AlertDescription>
-										</Alert>
-									)}
-									<div className="flex flex-col gap-2">
-										<Label htmlFor="register-display-name">Display Name</Label>
-										<Input
-											id="register-display-name"
+											id="display-name"
 											type="text"
 											placeholder="Your name"
 											value={displayName}
@@ -186,40 +146,57 @@ function LoginPage() {
 											autoComplete="name"
 										/>
 									</div>
-									<div className="flex flex-col gap-2">
-										<Label htmlFor="register-email">Email</Label>
-										<Input
-											id="register-email"
-											type="email"
-											placeholder="you@example.com"
-											value={email}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-											required
-											autoComplete="email"
-										/>
-									</div>
-									<div className="flex flex-col gap-2">
-										<Label htmlFor="register-password">Password</Label>
-										<Input
-											id="register-password"
-											type="password"
-											placeholder="••••••••"
-											value={password}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-											required
-											minLength={6}
-											autoComplete="new-password"
-										/>
-										<p className="text-xs text-muted-foreground">At least 6 characters with an uppercase letter and a digit.</p>
-									</div>
-									<Button type="submit" className="w-full" disabled={loading || !email.trim() || !password.trim() || !displayName.trim()}>
-										{loading ? "Creating account…" : "Create Account"}
-									</Button>
-								</form>
-							</CardContent>
-						</Card>
-					</TabsContent>
-				</Tabs>
+								)}
+								<div className="flex flex-col gap-2">
+									<Label htmlFor="email">Email</Label>
+									<Input
+										id="email"
+										type="email"
+										placeholder="you@example.com"
+										value={email}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+										required
+										autoComplete="email"
+									/>
+								</div>
+								<div className="flex flex-col gap-2">
+									<Label htmlFor="password">Password</Label>
+									<Input
+										id="password"
+										type="password"
+										placeholder="••••••••"
+										value={password}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+										required
+										minLength={isLogin ? undefined : 6}
+										autoComplete={isLogin ? "current-password" : "new-password"}
+									/>
+									{!isLogin && <p className="text-xs text-muted-foreground">At least 6 characters with an uppercase letter and a digit.</p>}
+								</div>
+								<Button type="submit" className="w-full" disabled={loading || !email.trim() || !password.trim() || (!isLogin && !displayName.trim())}>
+									{loading ? (isLogin ? "Signing in…" : "Creating account…") : isLogin ? "Sign In" : "Create Account"}
+								</Button>
+								<p className="text-center text-sm text-muted-foreground">
+									{isLogin ? (
+										<>
+											Don't have an account?{" "}
+											<button type="button" onClick={() => switchMode("register")} className="underline underline-offset-4 hover:text-primary">
+												Sign up
+											</button>
+										</>
+									) : (
+										<>
+											Already have an account?{" "}
+											<button type="button" onClick={() => switchMode("login")} className="underline underline-offset-4 hover:text-primary">
+												Sign in
+											</button>
+										</>
+									)}
+								</p>
+							</form>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
