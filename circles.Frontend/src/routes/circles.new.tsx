@@ -1,8 +1,10 @@
 // React
 import { useState } from "react";
 
+// Notifications
+import { toast } from "sonner";
+
 // Components
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,13 +28,11 @@ export const Route = createFileRoute("/circles/new")({
 function NewCirclePage() {
 	const navigate = useNavigate();
 	const [name, setName] = useState("");
-	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!name.trim()) return;
-		setError(null);
 		setSubmitting(true);
 		try {
 			const res = await fetch("/api/circles", {
@@ -40,13 +40,14 @@ function NewCirclePage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name }),
 			});
+			const data = await res.json();
 			if (!res.ok) {
-				const data = await res.json();
 				throw new Error(data.errors?.[0] || "Failed to create circle");
 			}
-			navigate({ to: "/" });
+			toast.success("Circle created successfully");
+			navigate({ to: "/circles/$circleName", params: { circleName: data.name } });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to create circle");
+			toast.error(err instanceof Error ? err.message : "Couldn't create circle");
 		} finally {
 			setSubmitting(false);
 		}
@@ -68,11 +69,6 @@ function NewCirclePage() {
 						<CardTitle>Create a Circle</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{error && (
-							<Alert variant="destructive" className="mb-4">
-								<AlertDescription>{error}</AlertDescription>
-							</Alert>
-						)}
 						<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 							<div className="flex flex-col gap-2">
 								<Label htmlFor="circle-name">Circle name</Label>
