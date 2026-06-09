@@ -1,12 +1,18 @@
 // React
 import { useState, useEffect, useRef } from "react";
 
+// Notifications
+import { toast } from "sonner";
+
 // Components
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 // Icons
 import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List, CircleDot, UserPlus } from "lucide-react";
@@ -30,6 +36,10 @@ interface Post {
 	id: string;
 	circleId: string;
 	value: string;
+	authorId: string;
+	authorDisplayName: string;
+	authorProfilePictureUrl: string | null;
+	createdAt: string;
 	media: PostMedia[];
 }
 
@@ -48,6 +58,72 @@ interface Friend {
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "webm"];
 const VIDEO_EXTENSIONS = ["mp4", "mov", "webm"];
 
+function PostCard({ post }: { post: Post }) {
+	const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+	const [currentSlide, setCurrentSlide] = useState(0);
+
+	useEffect(() => {
+		if (!carouselApi) return;
+		const onSelect = () => setCurrentSlide(carouselApi.selectedScrollSnap());
+		carouselApi.on("select", onSelect);
+		return () => {
+			carouselApi.off("select", onSelect);
+		};
+	}, [carouselApi]);
+
+	return (
+		<Card className="overflow-hidden pt-0 pb-1">
+			<div className="flex items-center gap-2.5 px-3 py-2.5 border-b">
+				<Avatar className="size-7 shrink-0">
+					<AvatarImage src={post.authorProfilePictureUrl ?? undefined} />
+					<AvatarFallback className="text-xs">{post.authorDisplayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+				</Avatar>
+				<span className="text-sm font-medium flex-1 truncate">{post.authorDisplayName}</span>
+				<span className="text-xs text-muted-foreground shrink-0">
+					{new Date(post.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+				</span>
+			</div>
+			{post.media.length > 0 && (
+				<div className="relative bg-black">
+					<Carousel setApi={setCarouselApi}>
+						<CarouselContent className="ml-0">
+							{post.media.map((m) => (
+								<CarouselItem key={m.id} className="pl-0">
+									{m.mediaType === "image" ? (
+										<img src={m.blobUrl} alt="" className="w-full max-h-[480px] object-contain" />
+									) : (
+										<video src={m.blobUrl} controls className="w-full max-h-[480px]" />
+									)}
+								</CarouselItem>
+							))}
+						</CarouselContent>
+						{post.media.length > 1 && (
+							<>
+								<CarouselPrevious className="left-2 size-7 bg-black/50 border-0 text-white hover:bg-black/70 hover:text-white" />
+								<CarouselNext className="right-2 size-7 bg-black/50 border-0 text-white hover:bg-black/70 hover:text-white" />
+							</>
+						)}
+					</Carousel>
+					{post.media.length > 1 && (
+						<div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
+							{post.media.map((_, i) => (
+								<div key={i} className={cn("size-1.5 rounded-full transition-colors", i === currentSlide ? "bg-white" : "bg-white/40")} />
+							))}
+						</div>
+					)}
+				</div>
+			)}
+			{post.value && (
+				<div className="px-3 py-2">
+					<p className="text-sm whitespace-pre-wrap">
+						<span className="font-semibold">{post.authorDisplayName}</span>: {post.value}
+					</p>
+				</div>
+			)}
+		</Card>
+	);
+}
+
 export const Route = createFileRoute("/circles/$circleName")({
 	beforeLoad: ({ context }) => {
 		if (!context.isAuthenticated) {
@@ -62,24 +138,23 @@ function CirclePostsPage() {
 	const navigate = useNavigate();
 	const [circle, setCircle] = useState<Circle | null>(null);
 	const [posts, setPosts] = useState<Post[]>([]);
-	const [error, setError] = useState<string | null>(null);
 	const [showForm, setShowForm] = useState(false);
 	const [newPostValue, setNewPostValue] = useState("");
 	const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 	const [uploading, setUploading] = useState(false);
 	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 	const [leaving, setLeaving] = useState(false);
-	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 	const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 	const [friends, setFriends] = useState<Friend[]>([]);
 	const [loadingFriends, setLoadingFriends] = useState(false);
-	// per-friend status: "sending" | "sent" | error message
 	const [inviteStatuses, setInviteStatuses] = useState<Record<string, string>>({});
 	const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+	const [postCarouselApi, setPostCarouselApi] = useState<CarouselApi | null>(null);
+	const [currentSlide, setCurrentSlide] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const fetchData = async () => {
-		setError(null);
 		try {
 			const circlesRes = await fetch("/api/circles");
 			if (!circlesRes.ok) throw new Error("Failed to load circles");
@@ -94,7 +169,7 @@ function CirclePostsPage() {
 			setCircle(found);
 			setPosts(postsData);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to load");
+			toast.error(err instanceof Error ? err.message : "Couldn't load posts");
 		}
 	};
 
@@ -147,7 +222,6 @@ function CirclePostsPage() {
 	const createPost = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!circle || !newPostValue.trim()) return;
-		setError(null);
 		setUploading(true);
 		try {
 			const media = pendingFiles.length > 0 ? await uploadAllFiles() : [];
@@ -164,13 +238,27 @@ function CirclePostsPage() {
 			pendingFiles.forEach((p) => URL.revokeObjectURL(p.previewUrl));
 			setPendingFiles([]);
 			setShowForm(false);
+			toast.success("Posted");
 			await fetchData();
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to create post");
+			toast.error(err instanceof Error ? err.message : "Couldn't post");
 		} finally {
 			setUploading(false);
 		}
 	};
+
+	useEffect(() => {
+		if (!postCarouselApi) return;
+		const onSelect = () => setCurrentSlide(postCarouselApi.selectedScrollSnap());
+		postCarouselApi.on("select", onSelect);
+		return () => {
+			postCarouselApi.off("select", onSelect);
+		};
+	}, [postCarouselApi]);
+
+	useEffect(() => {
+		setCurrentSlide(0);
+	}, [selectedPost]);
 
 	useEffect(() => {
 		if (!inviteDialogOpen) return;
@@ -210,7 +298,7 @@ function CirclePostsPage() {
 			if (!res.ok) throw new Error("Failed to leave circle");
 			navigate({ to: "/" });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to leave circle");
+			toast.error(err instanceof Error ? err.message : "Couldn't leave circle");
 			setLeaveDialogOpen(false);
 		} finally {
 			setLeaving(false);
@@ -219,6 +307,7 @@ function CirclePostsPage() {
 
 	return (
 		<div className="w-full min-h-screen flex flex-col">
+			{/* Invite dialog */}
 			<Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
@@ -252,9 +341,7 @@ function CirclePostsPage() {
 											<Button size="sm" variant="outline" disabled={status === "sending"} onClick={() => sendInvite(friend.userId)}>
 												{status === "sending" ? "Sending…" : "Invite"}
 											</Button>
-											{status && status !== "sending" && (
-												<p className="text-xs text-destructive max-w-[160px] text-right">{status}</p>
-											)}
+											{status && status !== "sending" && <p className="text-xs text-destructive max-w-[160px] text-right">{status}</p>}
 										</div>
 									)}
 								</div>
@@ -269,6 +356,7 @@ function CirclePostsPage() {
 				</DialogContent>
 			</Dialog>
 
+			{/* Leave dialog */}
 			<Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
@@ -287,37 +375,133 @@ function CirclePostsPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Post detail dialog */}
+			<Dialog
+				open={!!selectedPost}
+				onOpenChange={(open) => {
+					if (!open) setSelectedPost(null);
+				}}
+			>
+				<DialogContent className="max-w-sm p-0 gap-0 overflow-hidden" showCloseButton={false}>
+					<DialogHeader className="sr-only">
+						<DialogTitle>Post</DialogTitle>
+					</DialogHeader>
+					{selectedPost && (
+						<>
+							{/* Author header */}
+							<div className="flex items-center gap-2.5 px-3 py-2.5 border-b">
+								<Avatar className="size-7 shrink-0">
+									<AvatarImage src={selectedPost.authorProfilePictureUrl ?? undefined} />
+									<AvatarFallback className="text-xs">{selectedPost.authorDisplayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+								</Avatar>
+								<span className="text-sm font-medium flex-1 truncate">{selectedPost.authorDisplayName}</span>
+								<span className="text-xs text-muted-foreground shrink-0">
+									{new Date(selectedPost.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+								</span>
+								<DialogClose asChild>
+									<Button variant="ghost" size="icon" className="size-7 shrink-0 rounded-full opacity-60 hover:opacity-100">
+										<X className="size-3.5" />
+										<span className="sr-only">Close</span>
+									</Button>
+								</DialogClose>
+							</div>
+
+							{/* Media carousel */}
+							{selectedPost.media.length > 0 && (
+								<div className="relative bg-black">
+									<Carousel setApi={setPostCarouselApi}>
+										<CarouselContent className="ml-0">
+											{selectedPost.media.map((m) => (
+												<CarouselItem key={m.id} className="pl-0">
+													{m.mediaType === "image" ? (
+														<img src={m.blobUrl} alt="" className="w-full max-h-[65vh] object-contain" />
+													) : (
+														<video src={m.blobUrl} controls className="w-full max-h-[65vh]" />
+													)}
+												</CarouselItem>
+											))}
+										</CarouselContent>
+										{selectedPost.media.length > 1 && (
+											<>
+												<CarouselPrevious className="left-2 size-7 bg-black/50 border-0 text-white hover:bg-black/70 hover:text-white" />
+												<CarouselNext className="right-2 size-7 bg-black/50 border-0 text-white hover:bg-black/70 hover:text-white" />
+											</>
+										)}
+									</Carousel>
+									{selectedPost.media.length > 1 && (
+										<div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
+											{selectedPost.media.map((_, i) => (
+												<div key={i} className={cn("size-1.5 rounded-full transition-colors", i === currentSlide ? "bg-white" : "bg-white/40")} />
+											))}
+										</div>
+									)}
+								</div>
+							)}
+
+							{/* Text */}
+							{selectedPost.value && (
+								<div className="px-3 py-3">
+									<p className="text-sm whitespace-pre-wrap">{selectedPost.value}</p>
+								</div>
+							)}
+						</>
+					)}
+				</DialogContent>
+			</Dialog>
+
 			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
 				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
-					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
-						<ArrowLeft className="size-5" />
-					</Button>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
+								<ArrowLeft className="size-5" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Back</TooltipContent>
+					</Tooltip>
 					<h1 className="text-lg font-semibold m-0 flex-1">{circle?.name ?? "…"}</h1>
-					<Button
-						size="icon"
-						variant="ghost"
-						onClick={() => setViewMode((v) => (v === "grid" ? "list" : "grid"))}
-						aria-label={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
-					>
-						{viewMode === "grid" ? <List className="size-5" /> : <LayoutGrid className="size-5" />}
-					</Button>
-					<Button size="icon" variant="ghost" onClick={() => setInviteDialogOpen(true)} aria-label="Invite someone">
-						<UserPlus className="size-5" />
-					</Button>
-					<Button size="icon" variant="ghost" onClick={() => setLeaveDialogOpen(true)} aria-label="Leave circle">
-						<LogOut className="size-5" />
-					</Button>
-					<Button size="icon" variant="ghost" onClick={() => setShowForm((v) => !v)} aria-label={showForm ? "Cancel" : "New post"}>
-						{showForm ? <X className="size-5" /> : <Plus className="size-5" />}
-					</Button>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								size="icon"
+								variant="ghost"
+								onClick={() => setViewMode((v) => (v === "grid" ? "list" : "grid"))}
+								aria-label={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+							>
+								{viewMode === "grid" ? <List className="size-5" /> : <LayoutGrid className="size-5" />}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>{viewMode === "grid" ? "List view" : "Grid view"}</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button size="icon" variant="ghost" onClick={() => setInviteDialogOpen(true)} aria-label="Invite someone">
+								<UserPlus className="size-5" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Invite someone</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button size="icon" variant="ghost" onClick={() => setLeaveDialogOpen(true)} aria-label="Leave circle">
+								<LogOut className="size-5" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>Leave circle</TooltipContent>
+					</Tooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button size="icon" variant="ghost" onClick={() => setShowForm((v) => !v)} aria-label={showForm ? "Cancel" : "New post"}>
+								{showForm ? <X className="size-5" /> : <Plus className="size-5" />}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>{showForm ? "Cancel" : "New post"}</TooltipContent>
+					</Tooltip>
 				</div>
 			</header>
+
 			<main className="flex-1 max-w-[600px] w-full mx-auto px-4 py-6 flex flex-col gap-6">
-				{error && (
-					<Alert variant="destructive">
-						<AlertDescription>{error}</AlertDescription>
-					</Alert>
-				)}
 				{/* New post form */}
 				{showForm && (
 					<form onSubmit={createPost} className="flex flex-col gap-3 pb-4 border-b border-gray-200">
@@ -372,35 +556,7 @@ function CirclePostsPage() {
 						</div>
 					</form>
 				)}
-				{/* Post detail modal */}
-				<Dialog
-					open={!!selectedPost}
-					onOpenChange={(open) => {
-						if (!open) setSelectedPost(null);
-					}}
-				>
-					<DialogContent className="max-w-lg p-0 overflow-hidden">
-						<DialogHeader className="sr-only">
-							<DialogTitle>Post</DialogTitle>
-						</DialogHeader>
-						{selectedPost &&
-							(() => {
-								const firstImage = selectedPost.media.find((m) => m.mediaType === "image");
-								const firstVideo = selectedPost.media.find((m) => m.mediaType === "video");
-								return (
-									<>
-										{firstImage && <img src={firstImage.blobUrl} alt="" className="w-full max-h-[60vh] object-contain bg-black" />}
-										{firstVideo && <video src={firstVideo.blobUrl} controls className="w-full max-h-[60vh] bg-black" />}
-										{selectedPost.value && (
-											<div className="p-4">
-												<p className="text-sm whitespace-pre-wrap">{selectedPost.value}</p>
-											</div>
-										)}
-									</>
-								);
-							})()}
-					</DialogContent>
-				</Dialog>
+
 				{/* Posts */}
 				{posts.length === 0 && !showForm ? (
 					<div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
@@ -441,18 +597,10 @@ function CirclePostsPage() {
 						})}
 					</div>
 				) : (
-					<div className="flex flex-col divide-y divide-gray-100">
-						{posts.map((post) => {
-							const firstImage = post.media.find((m) => m.mediaType === "image");
-							const firstVideo = post.media.find((m) => m.mediaType === "video");
-							return (
-								<div key={post.id} className="flex flex-col py-4 gap-3">
-									{firstImage && <img src={firstImage.blobUrl} alt="" className="w-full rounded-lg object-cover max-h-[480px]" />}
-									{firstVideo && <video src={firstVideo.blobUrl} controls className="w-full rounded-lg max-h-[480px] bg-black" />}
-									{post.value && <p className="text-sm whitespace-pre-wrap">{post.value}</p>}
-								</div>
-							);
-						})}
+					<div className="flex flex-col gap-4">
+						{posts.map((post) => (
+							<PostCard key={post.id} post={post} />
+						))}
 					</div>
 				)}
 			</main>
