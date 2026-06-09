@@ -1,10 +1,13 @@
-﻿// React
+// React
 import { useState, useEffect } from "react";
 
+// Notifications
+import { toast } from "sonner";
+
 // Components
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ConcentricRings } from "@/components/ConcentricRings";
 import type { CircleRingData } from "@/components/ConcentricRings";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Icons
 import { UserRound, CirclePlus, Users } from "lucide-react";
@@ -34,6 +37,12 @@ interface Post {
 	media: PostMedia[];
 }
 
+interface UserInfo {
+	displayName: string;
+	bio: string | null;
+	email: string;
+}
+
 export const Route = createFileRoute("/")({
 	beforeLoad: ({ context }) => {
 		if (!context.isAuthenticated) {
@@ -47,8 +56,8 @@ function HomePage() {
 	const navigate = useNavigate();
 	const [circleRings, setCircleRings] = useState<CircleRingData[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
 	const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+	const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 	const [pendingCount, setPendingCount] = useState(0);
 
 	useEffect(() => {
@@ -80,7 +89,7 @@ function HomePage() {
 
 				setCircleRings(rings);
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Failed to load circles");
+				toast.error(err instanceof Error ? err.message : "Couldn't load circles");
 			} finally {
 				setLoading(false);
 			}
@@ -92,6 +101,13 @@ function HomePage() {
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data) => {
 				if (data?.profilePictureUrl) setProfilePictureUrl(data.profilePictureUrl);
+				if (data) {
+					setUserInfo({
+						displayName: data.displayName ?? "",
+						bio: data.bio ?? null,
+						email: data.email ?? "",
+					});
+				}
 			})
 			.catch(() => {});
 
@@ -107,25 +123,35 @@ function HomePage() {
 
 	return (
 		<div className="w-full min-h-screen flex flex-col">
-			<header className="px-8 pt-10 pb-6 border-b border-gray-200">
-				<div className="flex justify-between items-center max-w-[1400px] w-full mx-auto">
-					<h1 className="text-2xl font-bold m-0">Circles</h1>
-					<Button variant="ghost" size="icon" className="relative" onClick={() => navigate({ to: "/friends" })} aria-label="People">
-						<Users className="size-5" />
-						{pendingCount > 0 && (
-							<span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground leading-none">
-								{pendingCount}
-							</span>
-						)}
-					</Button>
+			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+				<div className="flex justify-between items-center max-w-[600px] w-full mx-auto">
+					<h1 className="text-lg font-semibold m-0">Circles</h1>
+					<div className="flex items-center gap-1">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button variant="ghost" size="icon" className="relative" onClick={() => navigate({ to: "/friends" })} aria-label="People">
+									<Users className="size-5" />
+									{pendingCount > 0 && (
+										<span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground leading-none">
+											{pendingCount}
+										</span>
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>People</TooltipContent>
+						</Tooltip>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/profile" })} aria-label="Your profile">
+									<UserRound className="size-5" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>Your profile</TooltipContent>
+						</Tooltip>
+					</div>
 				</div>
 			</header>
 			<main className="flex-1 flex flex-col items-center justify-center p-10 gap-6">
-				{error && (
-					<Alert variant="destructive" aria-live="polite" className="max-w-md w-full">
-						<AlertDescription>{error}</AlertDescription>
-					</Alert>
-				)}
 				{!loading && (
 					<ConcentricRings
 						circles={circleRings}
@@ -135,20 +161,28 @@ function HomePage() {
 							if (ring) navigate({ to: "/circles/$circleName", params: { circleName: ring.name } });
 						}}
 					>
-						<div
-							className="size-[160px] rounded-full overflow-hidden cursor-pointer shrink-0 bg-muted border border-border flex items-center justify-center"
-							// onClick={() => navigate({ to: "/profile", viewTransition: true })}
-							onClick={() => navigate({ to: "/profile" })}
-						>
-							{profilePictureUrl ? (
-								<img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
-							) : (
-								<UserRound className="size-16 text-muted-foreground" />
-							)}
+						<div className="flex flex-col items-center gap-2">
+							<div
+								className="size-[160px] rounded-full overflow-hidden cursor-pointer shrink-0 bg-muted border border-border flex items-center justify-center"
+								onClick={() => navigate({ to: "/profile" })}
+							>
+								{profilePictureUrl ? (
+									<img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
+								) : (
+									<UserRound className="size-16 text-muted-foreground" />
+								)}
+							</div>
+							{/* {userInfo && (
+								<div className="text-center" style={{ maxWidth: 180 }}>
+									{userInfo.displayName && <p className="font-semibold text-sm leading-tight">{userInfo.displayName}</p>}
+									{userInfo.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-tight">{userInfo.bio}</p>}
+									{userInfo.email && <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{userInfo.email}</p>}
+								</div>
+							)} */}
 						</div>
 					</ConcentricRings>
 				)}
-				{!loading && !error && circleRings.length === 0 && (
+				{!loading && circleRings.length === 0 && (
 					<div className="flex flex-col items-center gap-4 text-center max-w-sm">
 						<div>
 							<h2 className="text-lg font-semibold">You're not in any circles yet</h2>
