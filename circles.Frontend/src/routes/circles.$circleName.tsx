@@ -5,10 +5,11 @@ import { useState, useEffect, useRef } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
-import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List, CircleDot } from "lucide-react";
+import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List, CircleDot, UserPlus } from "lucide-react";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -63,6 +64,11 @@ function CirclePostsPage() {
 	const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 	const [leaving, setLeaving] = useState(false);
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+	const [inviteEmail, setInviteEmail] = useState("");
+	const [inviteError, setInviteError] = useState<string | null>(null);
+	const [inviteSuccess, setInviteSuccess] = useState(false);
+	const [inviting, setInviting] = useState(false);
 	const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -160,6 +166,30 @@ function CirclePostsPage() {
 		}
 	};
 
+	const sendInvite = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (!circle || !inviteEmail.trim()) return;
+		setInviting(true);
+		setInviteError(null);
+		setInviteSuccess(false);
+		try {
+			const res = await fetch(`/api/circles/${circle.id}/invitations`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ inviteeEmail: inviteEmail.trim() }),
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				setInviteError(data.errors?.[0] ?? "Failed to send invitation.");
+				return;
+			}
+			setInviteSuccess(true);
+			setInviteEmail("");
+		} finally {
+			setInviting(false);
+		}
+	};
+
 	const leaveCircle = async () => {
 		if (!circle) return;
 		setLeaving(true);
@@ -177,6 +207,49 @@ function CirclePostsPage() {
 
 	return (
 		<div className="w-full min-h-screen flex flex-col">
+			<Dialog
+				open={inviteDialogOpen}
+				onOpenChange={(open) => {
+					setInviteDialogOpen(open);
+					if (!open) {
+						setInviteEmail("");
+						setInviteError(null);
+						setInviteSuccess(false);
+					}
+				}}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Invite someone to "{circle?.name}"</DialogTitle>
+						<DialogDescription>Enter their email address. They'll receive an invitation to join this circle.</DialogDescription>
+					</DialogHeader>
+					<form onSubmit={sendInvite} className="flex flex-col gap-4">
+						<Input
+							type="email"
+							placeholder="Email address"
+							value={inviteEmail}
+							onChange={(e) => {
+								setInviteEmail(e.target.value);
+								setInviteError(null);
+								setInviteSuccess(false);
+							}}
+							disabled={inviting}
+							autoFocus
+						/>
+						{inviteError && <p className="text-sm text-destructive">{inviteError}</p>}
+						{inviteSuccess && <p className="text-sm text-green-600">Invitation sent!</p>}
+						<DialogFooter>
+							<Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)} disabled={inviting}>
+								Close
+							</Button>
+							<Button type="submit" disabled={!inviteEmail.trim() || inviting}>
+								{inviting ? "Sending…" : "Send invite"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
+
 			<Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
@@ -208,6 +281,9 @@ function CirclePostsPage() {
 						aria-label={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
 					>
 						{viewMode === "grid" ? <List className="size-5" /> : <LayoutGrid className="size-5" />}
+					</Button>
+					<Button size="icon" variant="ghost" onClick={() => setInviteDialogOpen(true)} aria-label="Invite someone">
+						<UserPlus className="size-5" />
 					</Button>
 					<Button size="icon" variant="ghost" onClick={() => setLeaveDialogOpen(true)} aria-label="Leave circle">
 						<LogOut className="size-5" />

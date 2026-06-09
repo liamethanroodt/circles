@@ -5,6 +5,7 @@ using circles.Server.Features.Auth.Endpoints;
 using circles.Server.Features.Auth.Models;
 using circles.Server.Features.Auth.Services;
 using circles.Server.Features.Circles.Endpoints;
+using circles.Server.Features.Friends.Endpoints;
 using circles.Server.Features.Posts.Endpoints;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,7 @@ builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpS
 // Register our MailKit-based email sender. ASP.NET Core Identity resolves
 // IEmailSender<ApplicationUser> internally and we also inject it explicitly in endpoints.
 builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSender>();
+builder.Services.AddTransient<IAppEmailSender, EmailSender>();
 
 // Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -139,8 +141,11 @@ var api = app.MapGroup("/api");
 api.MapGroup("/auth").MapAuthEndpoints();
 
 // Map feature endpoints (require authentication)
-api.MapGroup("/circles").MapCircleEndpoints().RequireAuthorization();
+api.MapGroup("/circles").MapCircleEndpoints().MapCircleInvitationSendEndpoint().RequireAuthorization();
 api.MapGroup("/posts").MapPostEndpoints().RequireAuthorization();
+api.MapGroup("/users").MapUserEndpoints().RequireAuthorization();
+api.MapGroup("/friends").MapFriendEndpoints().RequireAuthorization();
+api.MapGroup("/invitations").MapInvitationEndpoints().RequireAuthorization();
 
 app.MapDefaultEndpoints();
 

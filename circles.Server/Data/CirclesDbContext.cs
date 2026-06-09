@@ -1,5 +1,6 @@
 using circles.Server.Features.Auth.Models;
 using circles.Server.Features.Circles.Models;
+using circles.Server.Features.Friends.Models;
 using circles.Server.Features.Posts.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +15,10 @@ public class CirclesDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Circle> Circles => Set<Circle>();
     public DbSet<CircleMember> CircleMembers => Set<CircleMember>();
+    public DbSet<CircleInvitation> CircleInvitations => Set<CircleInvitation>();
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<PostMedia> PostMedia => Set<PostMedia>();
+    public DbSet<Friendship> Friendships => Set<Friendship>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +60,28 @@ public class CirclesDbContext : IdentityDbContext<ApplicationUser>
             entity.HasKey(e => e.Id);
             entity.Property(e => e.BlobUrl).IsRequired();
             entity.Property(e => e.MediaType).IsRequired().HasMaxLength(10);
+        });
+
+        modelBuilder.Entity<Friendship>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RequesterId).IsRequired();
+            entity.Property(e => e.AddresseeId).IsRequired();
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+        });
+
+        modelBuilder.Entity<CircleInvitation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.InviterId).IsRequired();
+            entity.Property(e => e.InviteeId).IsRequired();
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.HasOne(e => e.Circle)
+                .WithMany()
+                .HasForeignKey(e => e.CircleId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

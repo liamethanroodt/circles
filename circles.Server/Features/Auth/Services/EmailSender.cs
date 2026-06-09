@@ -16,7 +16,7 @@ namespace circles.Server.Features.Auth.Services;
 /// In production it falls back to the <see cref="SmtpSettings"/> configuration section.
 /// </summary>
 public class EmailSender(IOptions<SmtpSettings> options, IConfiguration configuration)
-    : IEmailSender<ApplicationUser>
+    : IEmailSender<ApplicationUser>, IAppEmailSender
 {
     private readonly SmtpSettings _settings = options.Value;
 
@@ -62,6 +62,9 @@ public class EmailSender(IOptions<SmtpSettings> options, IConfiguration configur
             $"<p>Your password reset code is: <strong>{resetCode}</strong></p>");
 
     // --- Private helpers ---------------------------------------------------------------------
+
+    public Task SendAsync(string to, string subject, string htmlBody) =>
+        SendEmailAsync(to, subject, htmlBody);
 
     private async Task SendEmailAsync(string to, string subject, string htmlBody)
     {

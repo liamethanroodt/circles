@@ -7,7 +7,7 @@ import { ConcentricRings } from "@/components/ConcentricRings";
 import type { CircleRingData } from "@/components/ConcentricRings";
 
 // Icons
-import { UserRound, CirclePlus } from "lucide-react";
+import { UserRound, CirclePlus, Users } from "lucide-react";
 
 // UI
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ function HomePage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+	const [pendingCount, setPendingCount] = useState(0);
 
 	useEffect(() => {
 		const loadData = async () => {
@@ -93,6 +94,15 @@ function HomePage() {
 				if (data?.profilePictureUrl) setProfilePictureUrl(data.profilePictureUrl);
 			})
 			.catch(() => {});
+
+		Promise.all([fetch("/api/friends/requests"), fetch("/api/invitations/")])
+			.then(async ([reqRes, invRes]) => {
+				const reqs = reqRes.ok ? await reqRes.json() : [];
+				const invs = invRes.ok ? await invRes.json() : [];
+				const received = reqs.filter((r: { direction: string }) => r.direction === "received").length;
+				setPendingCount(received + invs.length);
+			})
+			.catch(() => {});
 	}, []);
 
 	return (
@@ -100,6 +110,14 @@ function HomePage() {
 			<header className="px-8 pt-10 pb-6 border-b border-gray-200">
 				<div className="flex justify-between items-center max-w-[1400px] w-full mx-auto">
 					<h1 className="text-2xl font-bold m-0">Circles</h1>
+					<Button variant="ghost" size="icon" className="relative" onClick={() => navigate({ to: "/friends" })} aria-label="People">
+						<Users className="size-5" />
+						{pendingCount > 0 && (
+							<span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground leading-none">
+								{pendingCount}
+							</span>
+						)}
+					</Button>
 				</div>
 			</header>
 			<main className="flex-1 flex flex-col items-center justify-center p-10 gap-6">
