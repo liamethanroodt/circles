@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using circles.Server.Data;
 
@@ -11,9 +12,11 @@ using circles.Server.Data;
 namespace circles.Server.Migrations
 {
     [DbContext(typeof(CirclesDbContext))]
-    partial class CirclesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609132948_AddUserIdToPosts")]
+    partial class AddUserIdToPosts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -335,11 +338,7 @@ namespace circles.Server.Migrations
                     b.Property<Guid>("CircleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
@@ -470,8 +469,7 @@ namespace circles.Server.Migrations
                     b.HasOne("circles.Server.Features.Auth.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("circles.Server.Features.Posts.Models.PostMedia", b =>

@@ -1,9 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using circles.Server.Data;
+using circles.Server.Features.Auth.Models;
 using circles.Server.Features.Posts.Dtos;
 using circles.Server.Features.Posts.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace circles.Server.Features.Posts.Endpoints;
@@ -47,14 +50,43 @@ public static class PostEndpoints
         return post is not null ? Results.Ok(post) : Results.NotFound();
     }
 
-    private static async Task<IResult> GetPostsByCircleId(Guid circleId, CirclesDbContext db)
+    private static async Task<IResult> GetPostsByCircleId(Guid circleId, CirclesDbContext db, UserManager<ApplicationUser> userManager)
     {
-        var posts = await db.Posts.Include(p => p.Media.OrderBy(m => m.DisplayOrder)).Where(p => p.CircleId == circleId).ToListAsync();
-        return Results.Ok(posts);
+        var posts = await db.Posts
+            .Include(p => p.Media.OrderBy(m => m.DisplayOrder))
+            .Where(p => p.CircleId == circleId)
+            .ToListAsync();
+
+        if (posts.Count == 0) return Results.Ok(Array.Empty<PostDto>());
+
+        var userIds = posts.Select(p => p.UserId).Distinct().ToList();
+        var users = await userManager.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id);
+
+        var result = posts.Select(p =>
+        {
+            users.TryGetValue(p.UserId, out var author);
+            return new PostDto(
+                p.Id,
+                p.CircleId,
+                p.Value,
+                p.UserId,
+                author?.DisplayName ?? string.Empty,
+                author?.ProfilePictureUrl,
+                p.CreatedAt,
+                p.Media.Select(m => new PostMediaDto(m.Id, m.BlobUrl, m.MediaType, m.DisplayOrder)).ToList()
+            );
+        }).ToList();
+
+        return Results.Ok(result);
     }
 
-    private static async Task<IResult> CreatePost(CreatePostRequest request, CirclesDbContext db)
+    private static async Task<IResult> CreatePost(CreatePostRequest request, CirclesDbContext db, ClaimsPrincipal user)
     {
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null) return Results.Unauthorized();
+
         var validationResults = new List<ValidationResult>();
         var validationContext = new ValidationContext(request);
 
@@ -74,6 +106,8 @@ public static class PostEndpoints
         {
             Id = Guid.NewGuid(),
             CircleId = request.CircleId,
+            UserId = userId,
+            CreatedAt = DateTime.UtcNow,
             Value = request.Value,
             Media = request.Media.Select((m, i) => new PostMedia
             {

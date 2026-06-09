@@ -49,6 +49,10 @@ public class CirclesDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(e => e.CircleId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(e => e.Media)
                 .WithOne(e => e.Post)
                 .HasForeignKey(e => e.PostId)
