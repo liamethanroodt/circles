@@ -1,6 +1,6 @@
 namespace circles.Server.Features.Circles.Dtos;
 
-public record SendCircleInvitationRequest(string InviteeEmail);
+public record SendCircleInvitationRequest(string InviteeId);
 
 public record CircleInvitationDto(
     Guid Id,

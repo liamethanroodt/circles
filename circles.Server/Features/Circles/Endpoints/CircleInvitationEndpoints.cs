@@ -59,15 +59,15 @@ public static class CircleInvitationEndpoints
         var inviterId = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (inviterId is null) return Results.Unauthorized();
 
-        if (string.IsNullOrWhiteSpace(request.InviteeEmail))
-            return Results.BadRequest(new { errors = new[] { "Email is required." } });
+        if (string.IsNullOrWhiteSpace(request.InviteeId))
+            return Results.BadRequest(new { errors = new[] { "InviteeId is required." } });
 
         var isMember = await db.CircleMembers.AnyAsync(m => m.CircleId == circleId && m.UserId == inviterId);
         if (!isMember) return Results.NotFound();
 
-        var invitee = await userManager.FindByEmailAsync(request.InviteeEmail);
+        var invitee = await userManager.FindByIdAsync(request.InviteeId);
         if (invitee is null || !invitee.EmailConfirmed)
-            return Results.BadRequest(new { errors = new[] { "No account found with that email address." } });
+            return Results.BadRequest(new { errors = new[] { "User not found." } });
 
         if (invitee.Id == inviterId)
             return Results.BadRequest(new { errors = new[] { "You can't invite yourself." } });

@@ -3,9 +3,9 @@ import { useState, useEffect, useRef } from "react";
 
 // Components
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 // Icons
@@ -39,6 +39,12 @@ interface PendingFile {
 	mediaType: "image" | "video";
 }
 
+interface Friend {
+	userId: string;
+	displayName: string;
+	profilePictureUrl: string | null;
+}
+
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "mp4", "mov", "webm"];
 const VIDEO_EXTENSIONS = ["mp4", "mov", "webm"];
 
@@ -65,10 +71,10 @@ function CirclePostsPage() {
 	const [leaving, setLeaving] = useState(false);
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-	const [inviteEmail, setInviteEmail] = useState("");
-	const [inviteError, setInviteError] = useState<string | null>(null);
-	const [inviteSuccess, setInviteSuccess] = useState(false);
-	const [inviting, setInviting] = useState(false);
+	const [friends, setFriends] = useState<Friend[]>([]);
+	const [loadingFriends, setLoadingFriends] = useState(false);
+	// per-friend status: "sending" | "sent" | error message
+	const [inviteStatuses, setInviteStatuses] = useState<Record<string, string>>({});
 	const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,27 +172,33 @@ function CirclePostsPage() {
 		}
 	};
 
-	const sendInvite = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		if (!circle || !inviteEmail.trim()) return;
-		setInviting(true);
-		setInviteError(null);
-		setInviteSuccess(false);
+	useEffect(() => {
+		if (!inviteDialogOpen) return;
+		setLoadingFriends(true);
+		setInviteStatuses({});
+		fetch("/api/friends/")
+			.then((r) => (r.ok ? r.json() : []))
+			.then(setFriends)
+			.catch(() => setFriends([]))
+			.finally(() => setLoadingFriends(false));
+	}, [inviteDialogOpen]);
+
+	const sendInvite = async (friendId: string) => {
+		if (!circle) return;
+		setInviteStatuses((prev) => ({ ...prev, [friendId]: "sending" }));
 		try {
 			const res = await fetch(`/api/circles/${circle.id}/invitations`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ inviteeEmail: inviteEmail.trim() }),
+				body: JSON.stringify({ inviteeId: friendId }),
 			});
 			const data = await res.json();
-			if (!res.ok) {
-				setInviteError(data.errors?.[0] ?? "Failed to send invitation.");
-				return;
-			}
-			setInviteSuccess(true);
-			setInviteEmail("");
-		} finally {
-			setInviting(false);
+			setInviteStatuses((prev) => ({
+				...prev,
+				[friendId]: res.ok ? "sent" : (data.errors?.[0] ?? "Failed to send invitation."),
+			}));
+		} catch {
+			setInviteStatuses((prev) => ({ ...prev, [friendId]: "Failed to send invitation." }));
 		}
 	};
 
@@ -207,46 +219,53 @@ function CirclePostsPage() {
 
 	return (
 		<div className="w-full min-h-screen flex flex-col">
-			<Dialog
-				open={inviteDialogOpen}
-				onOpenChange={(open) => {
-					setInviteDialogOpen(open);
-					if (!open) {
-						setInviteEmail("");
-						setInviteError(null);
-						setInviteSuccess(false);
-					}
-				}}
-			>
+			<Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Invite someone to "{circle?.name}"</DialogTitle>
-						<DialogDescription>Enter their email address. They'll receive an invitation to join this circle.</DialogDescription>
+						<DialogTitle>Invite to "{circle?.name}"</DialogTitle>
+						<DialogDescription>Select a friend to invite to this circle.</DialogDescription>
 					</DialogHeader>
-					<form onSubmit={sendInvite} className="flex flex-col gap-4">
-						<Input
-							type="email"
-							placeholder="Email address"
-							value={inviteEmail}
-							onChange={(e) => {
-								setInviteEmail(e.target.value);
-								setInviteError(null);
-								setInviteSuccess(false);
-							}}
-							disabled={inviting}
-							autoFocus
-						/>
-						{inviteError && <p className="text-sm text-destructive">{inviteError}</p>}
-						{inviteSuccess && <p className="text-sm text-green-600">Invitation sent!</p>}
-						<DialogFooter>
-							<Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)} disabled={inviting}>
-								Close
-							</Button>
-							<Button type="submit" disabled={!inviteEmail.trim() || inviting}>
-								{inviting ? "Sending…" : "Send invite"}
-							</Button>
-						</DialogFooter>
-					</form>
+					<div className="flex flex-col gap-2 max-h-72 overflow-y-auto py-1">
+						{loadingFriends && <p className="text-sm text-muted-foreground text-center py-4">Loading friends…</p>}
+						{!loadingFriends && friends.length === 0 && (
+							<p className="text-sm text-muted-foreground text-center py-4">
+								You have no friends yet. Add friends from the{" "}
+								<button className="underline" onClick={() => navigate({ to: "/friends" })}>
+									People
+								</button>{" "}
+								page.
+							</p>
+						)}
+						{friends.map((friend) => {
+							const status = inviteStatuses[friend.userId];
+							return (
+								<div key={friend.userId} className="flex items-center gap-3 px-1 py-1.5">
+									<Avatar className="size-9 shrink-0">
+										<AvatarImage src={friend.profilePictureUrl ?? undefined} />
+										<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+									</Avatar>
+									<span className="flex-1 text-sm font-medium truncate">{friend.displayName}</span>
+									{status === "sent" ? (
+										<span className="text-xs text-muted-foreground shrink-0">Invited</span>
+									) : (
+										<div className="flex flex-col items-end gap-0.5 shrink-0">
+											<Button size="sm" variant="outline" disabled={status === "sending"} onClick={() => sendInvite(friend.userId)}>
+												{status === "sending" ? "Sending…" : "Invite"}
+											</Button>
+											{status && status !== "sending" && (
+												<p className="text-xs text-destructive max-w-[160px] text-right">{status}</p>
+											)}
+										</div>
+									)}
+								</div>
+							);
+						})}
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+							Close
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 
