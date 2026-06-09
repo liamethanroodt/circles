@@ -1,8 +1,10 @@
 // React
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+// Notifications
+import { toast } from "sonner";
 
 // Components
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,23 +34,21 @@ function LoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [displayName, setDisplayName] = useState("");
-	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(confirmed ? "Email confirmed! You can now sign in." : null);
 	const [loading, setLoading] = useState(false);
 	const [mode, setMode] = useState<"login" | "register">("login");
+
+	useEffect(() => {
+		if (confirmed) toast.success("Email confirmed");
+	}, []);
 
 	const isLogin = mode === "login";
 
 	const switchMode = (next: "login" | "register") => {
 		setMode(next);
-		setError(null);
-		setSuccess(null);
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError(null);
-		setSuccess(null);
 		setLoading(true);
 
 		const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
@@ -73,10 +73,10 @@ function LoginPage() {
 			} else {
 				// Stay on the register view and show the check-your-email message.
 				// Don't switch to login — the user can't sign in yet.
-				setSuccess("Account created! Please check your email to confirm your address before signing in.");
+				toast.success("Check your inbox to confirm your account");
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred.");
+			toast.error(err instanceof Error ? err.message : "Something went wrong");
 		} finally {
 			setLoading(false);
 		}
@@ -115,16 +115,6 @@ function LoginPage() {
 								<p className="text-sm text-muted-foreground">{isLogin ? "Sign in to your Circles account" : "Share your thoughts in circles"}</p>
 							</div>
 							<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-								{success && (
-									<Alert variant="success">
-										<AlertDescription>{success}</AlertDescription>
-									</Alert>
-								)}
-								{error && (
-									<Alert variant="destructive">
-										<AlertDescription>{error}</AlertDescription>
-									</Alert>
-								)}
 								{!isLogin && (
 									<div className="flex flex-col gap-2">
 										<Label htmlFor="display-name">Display Name</Label>

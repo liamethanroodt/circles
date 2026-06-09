@@ -1,6 +1,9 @@
 // Routing
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 
+// Components
+import { Toaster } from "@/components/ui/sonner";
+
 export interface AuthContext {
 	isAuthenticated: boolean;
 	email: string | null;
@@ -13,5 +16,10 @@ export const Route = createRootRouteWithContext<AuthContext>()({
 });
 
 function RootLayout() {
-	return <Outlet />;
+	return (
+		<>
+			<Outlet />
+			<Toaster />
+		</>
+	);
 }

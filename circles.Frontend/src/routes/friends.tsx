@@ -1,8 +1,10 @@
 // React
 import { useState, useEffect } from "react";
 
+// Notifications
+import { toast } from "sonner";
+
 // Components
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,7 +75,6 @@ function FriendsPage() {
 	const [friends, setFriends] = useState<Friend[]>([]);
 	const [invitations, setInvitations] = useState<CircleInvitation[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [actionError, setActionError] = useState<string | null>(null);
 
 	const loadData = async () => {
 		try {
@@ -116,7 +117,6 @@ function FriendsPage() {
 	const sendFriendRequest = async () => {
 		if (!searchEmail.trim()) return;
 		setSendingRequest(true);
-		setActionError(null);
 		try {
 			const res = await fetch("/api/friends/request", {
 				method: "POST",
@@ -125,11 +125,11 @@ function FriendsPage() {
 			});
 			const data = await res.json();
 			if (!res.ok) {
-				setActionError(data.errors?.[0] ?? "Failed to send request.");
+				toast.error(data.errors?.[0] ?? "Couldn't send request");
 				return;
 			}
-			// Refresh search result to show updated status
 			setSearchResult((prev) => (prev ? { ...prev, friendshipStatus: "pending" } : prev));
+			toast.success("Request sent");
 			await loadData();
 		} finally {
 			setSendingRequest(false);
@@ -137,56 +137,53 @@ function FriendsPage() {
 	};
 
 	const acceptRequest = async (id: string) => {
-		setActionError(null);
 		const res = await fetch(`/api/friends/requests/${id}/accept`, { method: "PUT" });
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
-			setActionError(data.errors?.[0] ?? "Failed to accept request.");
+			toast.error(data.errors?.[0] ?? "Couldn't accept request");
 			return;
 		}
+		toast.success("Friend added");
 		await loadData();
 	};
 
 	const declineRequest = async (id: string) => {
-		setActionError(null);
 		const res = await fetch(`/api/friends/requests/${id}/decline`, { method: "PUT" });
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
-			setActionError(data.errors?.[0] ?? "Failed to decline request.");
+			toast.error(data.errors?.[0] ?? "Couldn't decline request");
 			return;
 		}
 		await loadData();
 	};
 
 	const acceptInvitation = async (id: string, circleName: string) => {
-		setActionError(null);
 		const res = await fetch(`/api/invitations/${id}/accept`, { method: "PUT" });
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
-			setActionError(data.errors?.[0] ?? "Failed to accept invitation.");
+			toast.error(data.errors?.[0] ?? "Couldn't accept invitation");
 			return;
 		}
 		await loadData();
+		toast.success("Joined circle");
 		navigate({ to: "/circles/$circleName", params: { circleName } });
 	};
 
 	const declineInvitation = async (id: string) => {
-		setActionError(null);
 		const res = await fetch(`/api/invitations/${id}/decline`, { method: "PUT" });
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
-			setActionError(data.errors?.[0] ?? "Failed to decline invitation.");
+			toast.error(data.errors?.[0] ?? "Couldn't decline invitation");
 			return;
 		}
 		await loadData();
 	};
 
 	const unfriend = async (userId: string) => {
-		setActionError(null);
 		const res = await fetch(`/api/friends/${userId}`, { method: "DELETE" });
 		if (!res.ok) {
 			const data = await res.json().catch(() => ({}));
-			setActionError(data.errors?.[0] ?? "Failed to remove friend.");
+			toast.error(data.errors?.[0] ?? "Couldn't remove friend");
 			return;
 		}
 		await loadData();
@@ -211,14 +208,7 @@ function FriendsPage() {
 					)}
 				</div>
 			</header>
-
 			<main className="flex-1 max-w-[600px] w-full mx-auto px-4 py-6 flex flex-col gap-8">
-				{actionError && (
-					<Alert variant="destructive">
-						<AlertDescription>{actionError}</AlertDescription>
-					</Alert>
-				)}
-
 				{/* Search */}
 				<section className="flex flex-col gap-3">
 					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Find people</h2>
@@ -238,9 +228,7 @@ function FriendsPage() {
 							{searching ? "Searching…" : "Search"}
 						</Button>
 					</form>
-
 					{searchError && <p className="text-sm text-destructive">{searchError}</p>}
-
 					{searchResult && (
 						<div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
 							<Avatar className="size-10 shrink-0">
@@ -264,7 +252,6 @@ function FriendsPage() {
 						</div>
 					)}
 				</section>
-
 				{!loading && (receivedRequests.length > 0 || invitations.length > 0) && (
 					<>
 						<Separator />
@@ -277,7 +264,6 @@ function FriendsPage() {
 									</Badge>
 								)}
 							</h2>
-
 							{receivedRequests.map((req) => (
 								<div key={req.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
 									<Avatar className="size-10 shrink-0">
@@ -298,7 +284,6 @@ function FriendsPage() {
 									</div>
 								</div>
 							))}
-
 							{invitations.map((inv) => (
 								<div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
 									<Avatar className="size-10 shrink-0">
@@ -330,7 +315,6 @@ function FriendsPage() {
 						</section>
 					</>
 				)}
-
 				{!loading && sentRequests.length > 0 && (
 					<>
 						<Separator />
@@ -351,7 +335,6 @@ function FriendsPage() {
 						</section>
 					</>
 				)}
-
 				{!loading && (
 					<>
 						<Separator />
@@ -364,7 +347,6 @@ function FriendsPage() {
 									</Badge>
 								)}
 							</h2>
-
 							{friends.length === 0 ? (
 								<div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
 									<div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">

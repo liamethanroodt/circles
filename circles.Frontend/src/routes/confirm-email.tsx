@@ -1,9 +1,6 @@
 // React
 import { useEffect, useState } from "react";
 
-// Components
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
 // Icons
 import { CircleDot, Loader2 } from "lucide-react";
 
@@ -97,9 +94,7 @@ function ConfirmEmailPage() {
 
 				{status === "error" && (
 					<div className="flex flex-col items-center gap-4">
-						<Alert variant="destructive">
-							<AlertDescription>{errorMessage}</AlertDescription>
-						</Alert>
+						<p className="text-sm text-destructive">{errorMessage}</p>
 						<Link to="/login" search={{ confirmed: false }} className="text-sm text-primary underline underline-offset-4">
 							Back to sign in
 						</Link>
