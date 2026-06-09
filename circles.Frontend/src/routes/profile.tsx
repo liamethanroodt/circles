@@ -1,14 +1,19 @@
 // React
 import { useEffect, useRef, useState } from "react";
 
+// Notifications
+import { toast } from "sonner";
+
 // Components
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+// Icons
+import { ArrowLeft, Pencil, Users } from "lucide-react";
 
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
@@ -21,6 +26,12 @@ export const Route = createFileRoute("/profile")({
 	},
 	component: ProfilePage,
 });
+
+interface Friend {
+	userId: string;
+	displayName: string;
+	profilePictureUrl: string | null;
+}
 
 interface UserProfile {
 	email: string;
@@ -37,14 +48,13 @@ function ProfilePage() {
 	const [bio, setBio] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [uploadingPicture, setUploadingPicture] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [success, setSuccess] = useState<string | null>(null);
+	const [friends, setFriends] = useState<Friend[]>([]);
+
+	const hasChanges = displayName !== (profile?.displayName ?? "") || bio !== (profile?.bio ?? "");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleSave = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setError(null);
-		setSuccess(null);
 		setSaving(true);
 
 		try {
@@ -61,9 +71,9 @@ function ProfilePage() {
 			}
 
 			setProfile((prev) => (prev ? { ...prev, ...data } : prev));
-			setSuccess("Profile saved.");
+			toast.success("Saved");
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred.");
+			toast.error(err instanceof Error ? err.message : "Something went wrong");
 		} finally {
 			setSaving(false);
 		}
@@ -73,7 +83,6 @@ function ProfilePage() {
 		const file = e.target.files?.[0];
 		if (!file) return;
 
-		setError(null);
 		setUploadingPicture(true);
 
 		try {
@@ -90,9 +99,9 @@ function ProfilePage() {
 			if (!uploadRes.ok) throw new Error("Upload failed.");
 
 			setProfile((prev) => (prev ? { ...prev, profilePictureUrl: `${publicUrl}?t=${Date.now()}` } : prev));
-			setSuccess("Profile picture updated.");
+			toast.success("Photo updated");
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Upload failed.");
+			toast.error(err instanceof Error ? err.message : "Upload failed.");
 		} finally {
 			setUploadingPicture(false);
 			if (fileInputRef.current) fileInputRef.current.value = "";
@@ -109,6 +118,11 @@ function ProfilePage() {
 					setBio(data.bio ?? "");
 				}
 			});
+
+		fetch("/api/friends/")
+			.then((r) => (r.ok ? r.json() : []))
+			.then(setFriends)
+			.catch(() => {});
 	}, []);
 
 	const initials = (displayName || profile?.email || "?")
@@ -119,83 +133,127 @@ function ProfilePage() {
 		.slice(0, 2);
 
 	return (
-		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-			<div className="flex w-full max-w-sm flex-col gap-6">
-				<div className="flex justify-between items-center">
-					{/* <Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/", viewTransition: true })}> */}
-					<Button variant="ghost" className="self-start" onClick={() => navigate({ to: "/" })}>
-						← Back
+		<div className="w-full min-h-screen flex flex-col">
+			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
+					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
+						<ArrowLeft className="size-5" />
 					</Button>
+					<h1 className="text-lg font-semibold m-0 flex-1">Profile</h1>
 					<Button variant="outline" size="sm" onClick={logout}>
 						Sign Out
 					</Button>
 				</div>
+			</header>
 
-				<Card>
-					<CardHeader className="text-center">
-						<div className="flex justify-center mb-2">
-							<div className="relative">
-								<Avatar className="size-20">
-									<AvatarImage src={profile?.profilePictureUrl ?? undefined} />
-									<AvatarFallback className="text-lg">{initials}</AvatarFallback>
-								</Avatar>
-								<Button
-									variant="outline"
-									size="sm"
-									className="absolute -bottom-2 -right-2 size-8 rounded-full p-0"
-									onClick={() => fileInputRef.current?.click()}
-									disabled={uploadingPicture}
-									type="button"
-								>
-									{uploadingPicture ? "…" : "✎"}
-								</Button>
-								<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureSelect} />
-							</div>
+			<main className="flex-1 max-w-[600px] w-full mx-auto px-4 py-6 flex flex-col gap-8">
+				{/* Profile picture */}
+				<section className="flex flex-col items-center gap-4">
+					<div className="relative">
+						<Avatar className="size-24">
+							<AvatarImage src={profile?.profilePictureUrl ?? undefined} />
+							<AvatarFallback className="text-xl">{initials}</AvatarFallback>
+						</Avatar>
+						<Button
+							variant="outline"
+							size="sm"
+							className="absolute -bottom-2 -right-2 size-8 rounded-full p-0"
+							onClick={() => fileInputRef.current?.click()}
+							disabled={uploadingPicture}
+							type="button"
+						>
+							{uploadingPicture ? "…" : <Pencil className="size-3.5" />}
+						</Button>
+						<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePictureSelect} />
+					</div>
+					<div className="text-center">
+						<p className="font-semibold">{profile?.displayName || "Your Profile"}</p>
+						{profile?.bio && <p className="text-sm text-muted-foreground mt-0.5">{profile.bio}</p>}
+						<p className="text-sm text-muted-foreground mt-0.5">{profile?.email}</p>
+					</div>
+				</section>
+
+				<Separator />
+
+				{/* Edit profile */}
+				<section className="flex flex-col gap-3">
+					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Edit profile</h2>
+					<form onSubmit={handleSave} className="flex flex-col gap-4">
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="display-name">Display Name</Label>
+							<Input
+								id="display-name"
+								type="text"
+								value={displayName}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)}
+								required
+							/>
 						</div>
-						<CardTitle className="text-xl">{profile?.displayName || "Your Profile"}</CardTitle>
-						<CardDescription>{profile?.email}</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<form onSubmit={handleSave} className="flex flex-col gap-4">
-							{success && (
-								<Alert variant="success">
-									<AlertDescription>{success}</AlertDescription>
-								</Alert>
-							)}
-							{error && (
-								<Alert variant="destructive">
-									<AlertDescription>{error}</AlertDescription>
-								</Alert>
-							)}
-							<div className="flex flex-col gap-2">
-								<Label htmlFor="display-name">Display Name</Label>
-								<Input
-									id="display-name"
-									type="text"
-									value={displayName}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)}
-									required
-								/>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="bio">Bio</Label>
+							<Textarea
+								id="bio"
+								placeholder="Tell people a little about yourself…"
+								value={bio}
+								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBio(e.target.value)}
+								maxLength={160}
+								rows={3}
+							/>
+							<p className="text-xs text-muted-foreground text-right">{bio.length}/160</p>
+						</div>
+						<Button type="submit" disabled={saving || !displayName.trim() || !hasChanges}>
+							{saving ? "Saving…" : "Save Changes"}
+						</Button>
+					</form>
+				</section>
+
+				<Separator />
+
+				{/* Account */}
+				<section className="flex flex-col gap-3">
+					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Account</h2>
+					<div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+						<div className="flex-1 min-w-0">
+							<p className="text-xs text-muted-foreground">Email address</p>
+							<p className="font-medium text-sm truncate">{profile?.email}</p>
+						</div>
+					</div>
+				</section>
+
+				<Separator />
+
+				{/* Friends */}
+				<section className="flex flex-col gap-3">
+					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+						Friends
+						{friends.length > 0 && (
+							<span className="ml-2 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-normal normal-case tracking-normal text-secondary-foreground">
+								{friends.length}
+							</span>
+						)}
+					</h2>
+					{friends.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+							<div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+								<Users className="size-6" />
 							</div>
-							<div className="flex flex-col gap-2">
-								<Label htmlFor="bio">Bio</Label>
-								<Textarea
-									id="bio"
-									placeholder="Tell people a little about yourself…"
-									value={bio}
-									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBio(e.target.value)}
-									maxLength={160}
-									rows={3}
-								/>
-								<p className="text-xs text-muted-foreground text-right">{bio.length}/160</p>
+							<p className="text-sm text-muted-foreground">No friends yet.</p>
+						</div>
+					) : (
+						friends.map((friend) => (
+							<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+								<Avatar className="size-10 shrink-0">
+									<AvatarImage src={friend.profilePictureUrl ?? undefined} />
+									<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+								</Avatar>
+								<div className="flex-1 min-w-0">
+									<p className="font-medium text-sm truncate">{friend.displayName}</p>
+								</div>
 							</div>
-							<Button type="submit" className="w-full" disabled={saving || !displayName.trim()}>
-								{saving ? "Saving…" : "Save Changes"}
-							</Button>
-						</form>
-					</CardContent>
-				</Card>
-			</div>
+						))
+					)}
+				</section>
+			</main>
 		</div>
 	);
 }
