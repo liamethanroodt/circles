@@ -325,7 +325,7 @@ function CirclePostsPage() {
 							<p className="text-sm text-muted-foreground text-center py-4">
 								You have no friends yet. Add friends from the{" "}
 								<button className="underline" onClick={() => navigate({ to: "/friends" })}>
-									People
+									Friends
 								</button>{" "}
 								page.
 							</p>

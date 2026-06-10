@@ -205,7 +205,7 @@ function FriendsPage() {
 					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
 						<ArrowLeft className="size-5" />
 					</Button>
-					<h1 className="text-lg font-semibold m-0 flex-1">People</h1>
+					<h1 className="text-lg font-semibold m-0 flex-1">Friends</h1>
 					{pendingCount > 0 && (
 						<Badge variant="destructive" className="text-xs">
 							{pendingCount}

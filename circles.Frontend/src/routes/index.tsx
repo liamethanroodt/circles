@@ -130,11 +130,14 @@ function HomePage() {
 			<FloatingBackground />
 			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex justify-between items-center max-w-[600px] w-full mx-auto">
-					<h1 className="text-lg font-semibold m-0 font-fascinate">Circles</h1>
+					<div className="flex items-center gap-2">
+						<img src="/circles_logo.svg" alt="" className="size-12" aria-hidden="true" />
+						<h1 className="text-xl font-semibold m-0 font-fascinate">Circles</h1>
+					</div>
 					<div className="flex items-center gap-1">
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button variant="ghost" size="icon" className="relative" onClick={() => navigate({ to: "/friends" })} aria-label="People">
+								<Button variant="ghost" size="icon" className="relative" onClick={() => navigate({ to: "/friends" })} aria-label="Friends">
 									<Users className="size-5" />
 									{pendingCount > 0 && (
 										<span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground leading-none">
@@ -143,7 +146,7 @@ function HomePage() {
 									)}
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent>People</TooltipContent>
+							<TooltipContent>Friends</TooltipContent>
 						</Tooltip>
 						<Tooltip>
 							<TooltipTrigger asChild>

@@ -54,7 +54,7 @@ function ProfilePage() {
 	const [bio, setBio] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [uploadingPicture, setUploadingPicture] = useState(false);
-	const [friends, setFriends] = useState<Friend[]>([]);
+	// const [friends, setFriends] = useState<Friend[]>([]);
 	const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
 
 	const hasChanges = displayName !== (profile?.displayName ?? "") || bio !== (profile?.bio ?? "");
@@ -126,10 +126,10 @@ function ProfilePage() {
 				}
 			});
 
-		fetch("/api/friends/")
-			.then((r) => (r.ok ? r.json() : []))
-			.then(setFriends)
-			.catch(() => {});
+		// fetch("/api/friends/")
+		// 	.then((r) => (r.ok ? r.json() : []))
+		// 	.then(setFriends)
+		// 	.catch(() => {});
 	}, []);
 
 	const initials = (displayName || profile?.email || "?")
@@ -148,8 +148,12 @@ function ProfilePage() {
 						<DialogDescription>You'll need to sign in again to access your circles.</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setSignOutDialogOpen(false)}>Cancel</Button>
-						<Button variant="destructive" onClick={logout}>Sign Out</Button>
+						<Button variant="outline" onClick={() => setSignOutDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button variant="destructive" onClick={logout}>
+							Sign Out
+						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -162,11 +166,11 @@ function ProfilePage() {
 					<h1 className="text-lg font-semibold m-0 flex-1">Profile</h1>
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/friends" })} aria-label="People">
+							<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/friends" })} aria-label="Friends">
 								<Users className="size-5" />
 							</Button>
 						</TooltipTrigger>
-						<TooltipContent>People</TooltipContent>
+						<TooltipContent>Friends</TooltipContent>
 					</Tooltip>
 					<ThemeToggle />
 					<Button variant="outline" size="sm" onClick={() => setSignOutDialogOpen(true)}>
@@ -176,7 +180,7 @@ function ProfilePage() {
 			</header>
 
 			<main className="flex-1 max-w-[600px] w-full mx-auto px-4 py-6 flex flex-col gap-8">
-				{/* Profile picture */}
+				{/* Profile card */}
 				<section className="flex flex-col items-center gap-4">
 					<div className="relative">
 						<Avatar className="size-24">
@@ -197,13 +201,43 @@ function ProfilePage() {
 					</div>
 					<div className="text-center">
 						<p className="font-semibold">{profile?.displayName || "Your Profile"}</p>
-						{profile?.bio && <p className="text-sm text-muted-foreground mt-0.5">{profile.bio}</p>}
 						<p className="text-sm text-muted-foreground mt-0.5">{profile?.email}</p>
+						{profile?.bio && <p className="text-sm text-muted-foreground mt-1">{profile.bio}</p>}
 					</div>
 				</section>
-
 				<Separator />
-
+				{/* Friends */}
+				{/* <section className="flex flex-col gap-3">
+					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+						Friends
+						{friends.length > 0 && (
+							<span className="ml-2 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-normal normal-case tracking-normal text-secondary-foreground">
+								{friends.length}
+							</span>
+						)}
+					</h2>
+					{friends.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+							<div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+								<Users className="size-6" />
+							</div>
+							<p className="text-sm text-muted-foreground">No friends yet.</p>
+						</div>
+					) : (
+						friends.map((friend) => (
+							<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-border">
+								<Avatar className="size-10 shrink-0">
+									<AvatarImage src={friend.profilePictureUrl ?? undefined} />
+									<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+								</Avatar>
+								<div className="flex-1 min-w-0">
+									<p className="font-medium text-sm truncate">{friend.displayName}</p>
+								</div>
+							</div>
+						))
+					)}
+				</section>
+				<Separator /> */}
 				{/* Edit profile */}
 				<section className="flex flex-col gap-3">
 					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Edit profile</h2>
@@ -234,53 +268,6 @@ function ProfilePage() {
 							{saving ? "Saving…" : "Save Changes"}
 						</Button>
 					</form>
-				</section>
-
-				<Separator />
-
-				{/* Account */}
-				<section className="flex flex-col gap-3">
-					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Account</h2>
-					<div className="flex items-center gap-3 p-3 rounded-lg border border-border">
-						<div className="flex-1 min-w-0">
-							<p className="text-xs text-muted-foreground">Email address</p>
-							<p className="font-medium text-sm truncate">{profile?.email}</p>
-						</div>
-					</div>
-				</section>
-
-				<Separator />
-
-				{/* Friends */}
-				<section className="flex flex-col gap-3">
-					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-						Friends
-						{friends.length > 0 && (
-							<span className="ml-2 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-normal normal-case tracking-normal text-secondary-foreground">
-								{friends.length}
-							</span>
-						)}
-					</h2>
-					{friends.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-							<div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-								<Users className="size-6" />
-							</div>
-							<p className="text-sm text-muted-foreground">No friends yet.</p>
-						</div>
-					) : (
-						friends.map((friend) => (
-							<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-border">
-								<Avatar className="size-10 shrink-0">
-									<AvatarImage src={friend.profilePictureUrl ?? undefined} />
-									<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
-								</Avatar>
-								<div className="flex-1 min-w-0">
-									<p className="font-medium text-sm truncate">{friend.displayName}</p>
-								</div>
-							</div>
-						))
-					)}
 				</section>
 			</main>
 		</div>
