@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Icons
 import { ArrowLeft, Pencil, Users } from "lucide-react";
@@ -53,6 +55,7 @@ function ProfilePage() {
 	const [saving, setSaving] = useState(false);
 	const [uploadingPicture, setUploadingPicture] = useState(false);
 	const [friends, setFriends] = useState<Friend[]>([]);
+	const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
 
 	const hasChanges = displayName !== (profile?.displayName ?? "") || bio !== (profile?.bio ?? "");
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -138,6 +141,18 @@ function ProfilePage() {
 
 	return (
 		<div className="w-full min-h-screen flex flex-col relative">
+			<Dialog open={signOutDialogOpen} onOpenChange={setSignOutDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Sign out?</DialogTitle>
+						<DialogDescription>You'll need to sign in again to access your circles.</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setSignOutDialogOpen(false)}>Cancel</Button>
+						<Button variant="destructive" onClick={logout}>Sign Out</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<FloatingBackground />
 			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
@@ -145,8 +160,16 @@ function ProfilePage() {
 						<ArrowLeft className="size-5" />
 					</Button>
 					<h1 className="text-lg font-semibold m-0 flex-1">Profile</h1>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/friends" })} aria-label="People">
+								<Users className="size-5" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent>People</TooltipContent>
+					</Tooltip>
 					<ThemeToggle />
-					<Button variant="outline" size="sm" onClick={logout}>
+					<Button variant="outline" size="sm" onClick={() => setSignOutDialogOpen(true)}>
 						Sign Out
 					</Button>
 				</div>

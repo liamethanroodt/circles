@@ -9,9 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Icons
-import { CircleDot } from "lucide-react";
-
 // Routing
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
@@ -99,30 +96,23 @@ function LoginPage() {
 				<div className="login-float-c absolute -bottom-10 left-2/3 size-[140px] rounded-full border border-white/10" />
 				{/* Branding */}
 				<div className="relative z-10 flex flex-col items-center gap-6 text-center">
-					<div className="flex items-center gap-3">
-						<div className="flex size-12 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30 backdrop-blur-sm">
-							<CircleDot className="size-7" />
-						</div>
-						<span className="text-3xl font-bold tracking-tight">Circles</span>
-					</div>
-					<p className="max-w-xs text-lg text-white/75">Share your thoughts and connect with the people that matter.</p>
+					<img src="/circles_logo.svg" alt="Circles logo" className="size-50" />
+					<span className="text-6xl font-bold tracking-tight font-fascinate">Circles</span>
+					<p className="max-w-xs text-lg text-white/75">Share with the people that matter</p>
 				</div>
 			</div>
 			{/* Right column — form, full width on mobile */}
 			<div className="flex flex-col gap-4 p-6 md:p-10">
-				{/* Logo shown only on mobile */}
-				<div className="flex justify-center lg:hidden">
-					<div className="flex items-center gap-2 font-medium">
-						<div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-							<CircleDot className="size-4" />
-						</div>
-						Circles
-					</div>
-				</div>
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-sm">
 						<div className="flex flex-col gap-6">
-							<div className="text-center">
+							{/* Branding shown only on mobile */}
+							<div className="flex flex-col items-center gap-2 pb-2 lg:hidden">
+								<img src="/circles_logo.svg" alt="Circles logo" className="size-50" />
+								<span className="text-4xl font-bold tracking-tight font-fascinate">Circles</span>
+								<p className="text-sm text-muted-foreground">Share with the people that matter</p>
+							</div>
+							<div className="text-center hidden lg:block">
 								<h1 className="text-xl font-semibold">{isLogin ? "Welcome back" : "Create an account"}</h1>
 								<p className="text-sm text-muted-foreground">{isLogin ? "Sign in to your Circles account" : "Share your thoughts in circles"}</p>
 							</div>

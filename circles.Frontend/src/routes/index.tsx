@@ -130,7 +130,7 @@ function HomePage() {
 			<FloatingBackground />
 			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex justify-between items-center max-w-[600px] w-full mx-auto">
-					<h1 className="text-lg font-semibold m-0">Circles</h1>
+					<h1 className="text-lg font-semibold m-0 font-fascinate">Circles</h1>
 					<div className="flex items-center gap-1">
 						<Tooltip>
 							<TooltipTrigger asChild>
