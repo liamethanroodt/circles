@@ -3,6 +3,7 @@ import { useState } from "react";
 
 // Components
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Icons
 import { Moon, Sun } from "lucide-react";
@@ -18,8 +19,13 @@ export function ThemeToggle() {
 	};
 
 	return (
-		<Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
-			{dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
-		</Button>
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
+					{dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent>{dark ? "Light mode" : "Dark mode"}</TooltipContent>
+		</Tooltip>
 	);
 }
