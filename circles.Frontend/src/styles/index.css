@@ -130,8 +130,8 @@
 	content: "";
 	position: absolute;
 	inset: -50%;
-	background: conic-gradient(from 0deg at 40% 55%, #4c1d95, #6d28d9, #7c3aed, #4338ca, #3b0764, #5b21b6, #4c1d95);
-	animation: login-rotate 22s linear infinite;
+	background: conic-gradient(from 0deg at 40% 55%, #4c1d95, #6d28d9, #7c3aed, #4338ca, #5b21b6);
+	animation: login-rotate 12s linear infinite;
 	filter: blur(72px);
 	opacity: 0.9;
 }
