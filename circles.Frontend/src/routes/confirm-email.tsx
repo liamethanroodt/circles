@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 // Icons
 import { CircleDot, Loader2 } from "lucide-react";
 
+// Background
+import { FloatingBackground } from "@/components/FloatingBackground";
+
 // Routing
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
@@ -69,7 +72,8 @@ function ConfirmEmailPage() {
 	}, [userId, token, navigate]);
 
 	return (
-		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+		<div className="relative overflow-hidden flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+			<FloatingBackground />
 			<div className="flex items-center gap-2 font-medium">
 				<div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
 					<CircleDot className="size-4" />

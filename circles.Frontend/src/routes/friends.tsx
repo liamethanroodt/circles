@@ -14,6 +14,10 @@ import { Separator } from "@/components/ui/separator";
 // Icons
 import { ArrowLeft, Check, UserPlus, Users, X } from "lucide-react";
 
+// Background
+import { FloatingBackground } from "@/components/FloatingBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
@@ -194,8 +198,9 @@ function FriendsPage() {
 	const pendingCount = receivedRequests.length + invitations.length;
 
 	return (
-		<div className="w-full min-h-screen flex flex-col">
-			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+		<div className="w-full min-h-screen flex flex-col relative">
+			<FloatingBackground />
+			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
 					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
 						<ArrowLeft className="size-5" />
@@ -206,6 +211,7 @@ function FriendsPage() {
 							{pendingCount}
 						</Badge>
 					)}
+					<ThemeToggle />
 				</div>
 			</header>
 			<main className="flex-1 max-w-[600px] w-full mx-auto px-4 py-6 flex flex-col gap-8">
@@ -230,7 +236,7 @@ function FriendsPage() {
 					</form>
 					{searchError && <p className="text-sm text-destructive">{searchError}</p>}
 					{searchResult && (
-						<div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+						<div className="flex items-center gap-3 p-3 rounded-lg border border-border">
 							<Avatar className="size-10 shrink-0">
 								<AvatarImage src={searchResult.profilePictureUrl ?? undefined} />
 								<AvatarFallback>{searchResult.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -265,7 +271,7 @@ function FriendsPage() {
 								)}
 							</h2>
 							{receivedRequests.map((req) => (
-								<div key={req.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+								<div key={req.id} className="flex items-center gap-3 p-3 rounded-lg border border-border">
 									<Avatar className="size-10 shrink-0">
 										<AvatarImage src={req.requesterProfilePictureUrl ?? undefined} />
 										<AvatarFallback>{req.requesterDisplayName.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -285,7 +291,7 @@ function FriendsPage() {
 								</div>
 							))}
 							{invitations.map((inv) => (
-								<div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+								<div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg border border-border">
 									<Avatar className="size-10 shrink-0">
 										<AvatarImage src={inv.inviterProfilePictureUrl ?? undefined} />
 										<AvatarFallback>{inv.inviterDisplayName.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -321,7 +327,7 @@ function FriendsPage() {
 						<section className="flex flex-col gap-3">
 							<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Sent requests</h2>
 							{sentRequests.map((req) => (
-								<div key={req.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+								<div key={req.id} className="flex items-center gap-3 p-3 rounded-lg border border-border">
 									<Avatar className="size-10 shrink-0">
 										<AvatarImage src={req.addresseeProfilePictureUrl ?? undefined} />
 										<AvatarFallback>{req.addresseeDisplayName.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -356,7 +362,7 @@ function FriendsPage() {
 								</div>
 							) : (
 								friends.map((friend) => (
-									<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+									<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-border">
 										<Avatar className="size-10 shrink-0">
 											<AvatarImage src={friend.profilePictureUrl ?? undefined} />
 											<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>

@@ -15,6 +15,10 @@ import { Textarea } from "@/components/ui/textarea";
 // Icons
 import { ArrowLeft, Pencil, Users } from "lucide-react";
 
+// Background
+import { FloatingBackground } from "@/components/FloatingBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
@@ -133,13 +137,15 @@ function ProfilePage() {
 		.slice(0, 2);
 
 	return (
-		<div className="w-full min-h-screen flex flex-col">
-			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+		<div className="w-full min-h-screen flex flex-col relative">
+			<FloatingBackground />
+			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
 					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
 						<ArrowLeft className="size-5" />
 					</Button>
 					<h1 className="text-lg font-semibold m-0 flex-1">Profile</h1>
+					<ThemeToggle />
 					<Button variant="outline" size="sm" onClick={logout}>
 						Sign Out
 					</Button>
@@ -212,7 +218,7 @@ function ProfilePage() {
 				{/* Account */}
 				<section className="flex flex-col gap-3">
 					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Account</h2>
-					<div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+					<div className="flex items-center gap-3 p-3 rounded-lg border border-border">
 						<div className="flex-1 min-w-0">
 							<p className="text-xs text-muted-foreground">Email address</p>
 							<p className="font-medium text-sm truncate">{profile?.email}</p>
@@ -241,7 +247,7 @@ function ProfilePage() {
 						</div>
 					) : (
 						friends.map((friend) => (
-							<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+							<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-border">
 								<Avatar className="size-10 shrink-0">
 									<AvatarImage src={friend.profilePictureUrl ?? undefined} />
 									<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>

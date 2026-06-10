@@ -12,6 +12,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 // Icons
 import { UserRound, CirclePlus, Users } from "lucide-react";
 
+// Background
+import { FloatingBackground } from "@/components/FloatingBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 // UI
 import { Button } from "@/components/ui/button";
 
@@ -37,11 +41,11 @@ interface Post {
 	media: PostMedia[];
 }
 
-interface UserInfo {
-	displayName: string;
-	bio: string | null;
-	email: string;
-}
+// interface UserInfo {
+// 	displayName: string;
+// 	bio: string | null;
+// 	email: string;
+// }
 
 export const Route = createFileRoute("/")({
 	beforeLoad: ({ context }) => {
@@ -57,7 +61,7 @@ function HomePage() {
 	const [circleRings, setCircleRings] = useState<CircleRingData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
-	const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+	// const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 	const [pendingCount, setPendingCount] = useState(0);
 
 	useEffect(() => {
@@ -101,13 +105,13 @@ function HomePage() {
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data) => {
 				if (data?.profilePictureUrl) setProfilePictureUrl(data.profilePictureUrl);
-				if (data) {
-					setUserInfo({
-						displayName: data.displayName ?? "",
-						bio: data.bio ?? null,
-						email: data.email ?? "",
-					});
-				}
+				// if (data) {
+				// 	setUserInfo({
+				// 		displayName: data.displayName ?? "",
+				// 		bio: data.bio ?? null,
+				// 		email: data.email ?? "",
+				// 	});
+				// }
 			})
 			.catch(() => {});
 
@@ -122,8 +126,9 @@ function HomePage() {
 	}, []);
 
 	return (
-		<div className="w-full min-h-screen flex flex-col">
-			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+		<div className="w-full min-h-screen flex flex-col relative">
+			<FloatingBackground />
+			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex justify-between items-center max-w-[600px] w-full mx-auto">
 					<h1 className="text-lg font-semibold m-0">Circles</h1>
 					<div className="flex items-center gap-1">
@@ -148,6 +153,7 @@ function HomePage() {
 							</TooltipTrigger>
 							<TooltipContent>Your profile</TooltipContent>
 						</Tooltip>
+						<ThemeToggle />
 					</div>
 				</div>
 			</header>

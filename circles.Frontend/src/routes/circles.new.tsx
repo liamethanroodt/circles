@@ -13,6 +13,10 @@ import { Label } from "@/components/ui/label";
 // Icons
 import { ArrowLeft } from "lucide-react";
 
+// Background
+import { FloatingBackground } from "@/components/FloatingBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
@@ -54,13 +58,15 @@ function NewCirclePage() {
 	};
 
 	return (
-		<div className="w-full min-h-screen flex flex-col">
-			<header className="px-8 pt-10 pb-6 border-b border-gray-200">
+		<div className="w-full min-h-screen flex flex-col relative">
+			<FloatingBackground />
+			<header className="px-8 pt-10 pb-6 border-b border-border">
 				<div className="flex items-center gap-4 max-w-[600px] w-full mx-auto">
 					<Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} aria-label="Back">
 						<ArrowLeft className="size-5" />
 					</Button>
-					<h1 className="text-2xl font-bold m-0">New Circle</h1>
+					<h1 className="text-2xl font-bold m-0 flex-1">New Circle</h1>
+					<ThemeToggle />
 				</div>
 			</header>
 			<main className="flex-1 flex items-start justify-center px-8 pt-10">

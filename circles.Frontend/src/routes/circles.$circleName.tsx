@@ -17,6 +17,10 @@ import { cn } from "@/lib/utils";
 // Icons
 import { ArrowLeft, Plus, X, LogOut, LayoutGrid, List, CircleDot, UserPlus } from "lucide-react";
 
+// Background
+import { FloatingBackground } from "@/components/FloatingBackground";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 // Routing
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
@@ -306,7 +310,8 @@ function CirclePostsPage() {
 	};
 
 	return (
-		<div className="w-full min-h-screen flex flex-col">
+		<div className="w-full min-h-screen flex flex-col relative">
+			<FloatingBackground />
 			{/* Invite dialog */}
 			<Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
 				<DialogContent>
@@ -450,7 +455,7 @@ function CirclePostsPage() {
 				</DialogContent>
 			</Dialog>
 
-			<header className="px-4 pt-6 pb-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex items-center gap-3 max-w-[600px] mx-auto">
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -498,6 +503,7 @@ function CirclePostsPage() {
 						</TooltipTrigger>
 						<TooltipContent>{showForm ? "Cancel" : "New post"}</TooltipContent>
 					</Tooltip>
+					<ThemeToggle />
 				</div>
 			</header>
 
@@ -517,7 +523,7 @@ function CirclePostsPage() {
 						{pendingFiles.length > 0 && (
 							<div className="flex flex-wrap gap-2">
 								{pendingFiles.map((pf, i) => (
-									<div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 shrink-0">
+									<div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border shrink-0">
 										{pf.mediaType === "image" ? (
 											<img src={pf.previewUrl} alt={pf.file.name} className="w-full h-full object-cover" />
 										) : (
@@ -577,14 +583,14 @@ function CirclePostsPage() {
 							const firstImage = post.media.find((m) => m.mediaType === "image");
 							const firstVideo = post.media.find((m) => m.mediaType === "video");
 							return (
-								<div key={post.id} className="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer" onClick={() => setSelectedPost(post)}>
+								<div key={post.id} className="relative aspect-square bg-muted overflow-hidden cursor-pointer" onClick={() => setSelectedPost(post)}>
 									{firstImage ? (
 										<img src={firstImage.blobUrl} alt="" className="w-full h-full object-cover" />
 									) : firstVideo ? (
 										<video src={firstVideo.blobUrl} muted className="w-full h-full object-cover" />
 									) : (
 										<div className="w-full h-full flex items-center justify-center p-3">
-											<p className="text-xs text-gray-600 text-center line-clamp-4 leading-relaxed">{post.value}</p>
+											<p className="text-xs text-muted-foreground text-center line-clamp-4 leading-relaxed">{post.value}</p>
 										</div>
 									)}
 									{post.media.length > 1 && (
