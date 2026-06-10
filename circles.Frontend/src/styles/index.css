@@ -86,6 +86,65 @@
 	}
 }
 
+/* Login panel animated background */
+@keyframes login-rotate {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+@keyframes login-float-a {
+	0%,
+	100% {
+		transform: translateY(0px) translateX(0px);
+	}
+	50% {
+		transform: translateY(-22px) translateX(12px);
+	}
+}
+@keyframes login-float-b {
+	0%,
+	100% {
+		transform: translateY(0px) translateX(0px);
+	}
+	50% {
+		transform: translateY(18px) translateX(-14px);
+	}
+}
+@keyframes login-float-c {
+	0%,
+	100% {
+		transform: translateY(0px) translateX(0px) scale(1);
+	}
+	50% {
+		transform: translateY(-12px) translateX(10px) scale(1.06);
+	}
+}
+
+.login-panel {
+	background: #1e0a3c;
+}
+.login-panel::before {
+	content: "";
+	position: absolute;
+	inset: -50%;
+	background: conic-gradient(from 0deg at 40% 55%, #4c1d95, #6d28d9, #7c3aed, #4338ca, #3b0764, #5b21b6, #4c1d95);
+	animation: login-rotate 22s linear infinite;
+	filter: blur(72px);
+	opacity: 0.9;
+}
+.login-float-a {
+	animation: login-float-a 9s ease-in-out infinite;
+}
+.login-float-b {
+	animation: login-float-b 13s ease-in-out infinite;
+}
+.login-float-c {
+	animation: login-float-c 7s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

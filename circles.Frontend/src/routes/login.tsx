@@ -85,15 +85,27 @@ function LoginPage() {
 	return (
 		<div className="grid min-h-svh lg:grid-cols-2">
 			{/* Left column — branding panel, hidden on mobile */}
-			<div className="relative hidden bg-primary lg:flex lg:flex-col lg:items-center lg:justify-center p-10 text-primary-foreground">
-				<div className="flex flex-col items-center gap-6 text-center">
+			<div className="login-panel relative hidden overflow-hidden lg:flex lg:flex-col lg:items-center lg:justify-center p-10 text-white">
+				{/* Blurred glow blobs */}
+				<div className="login-float-a absolute -top-20 -right-10 size-72 rounded-full bg-violet-400/25 blur-3xl" />
+				<div className="login-float-b absolute -bottom-16 -left-16 size-80 rounded-full bg-indigo-500/20 blur-3xl" />
+				<div className="login-float-c absolute top-1/2 left-1/3 size-48 rounded-full bg-purple-300/15 blur-2xl" />
+				{/* Circle ring decorations */}
+				<div className="login-float-b absolute -top-32 -left-32 size-[480px] rounded-full border border-white/8" />
+				<div className="login-float-b absolute -top-16 -left-16 size-[280px] rounded-full border border-white/10" />
+				<div className="login-float-a absolute top-1/3 -right-28 size-[360px] rounded-full border border-white/8" />
+				<div className="login-float-a absolute top-1/3 -right-10 size-[200px] rounded-full border border-white/10" />
+				<div className="login-float-c absolute -bottom-24 left-1/4 size-[300px] rounded-full border border-white/8" />
+				<div className="login-float-c absolute -bottom-10 left-2/3 size-[140px] rounded-full border border-white/10" />
+				{/* Branding */}
+				<div className="relative z-10 flex flex-col items-center gap-6 text-center">
 					<div className="flex items-center gap-3">
-						<div className="flex size-12 items-center justify-center rounded-xl bg-primary-foreground text-primary">
+						<div className="flex size-12 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30 backdrop-blur-sm">
 							<CircleDot className="size-7" />
 						</div>
 						<span className="text-3xl font-bold tracking-tight">Circles</span>
 					</div>
-					<p className="max-w-xs text-lg opacity-80">Share your thoughts and connect with the people that matter.</p>
+					<p className="max-w-xs text-lg text-white/75">Share your thoughts and connect with the people that matter.</p>
 				</div>
 			</div>
 			{/* Right column — form, full width on mobile */}
