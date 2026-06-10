@@ -121,7 +121,8 @@ export function ConcentricRings({ circles, onCreateCircle, onCircleClick, childr
 							cy={CENTER}
 							r={ring.radius}
 							fill="none"
-							stroke="rgba(0,0,0,0.2)"
+							stroke="var(--foreground)"
+							strokeOpacity="0.15"
 							strokeWidth="1"
 							style={{ pointerEvents: "none" }}
 							className="ring-visual"
