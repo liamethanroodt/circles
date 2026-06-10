@@ -55,6 +55,7 @@ public static class PostEndpoints
         var posts = await db.Posts
             .Include(p => p.Media.OrderBy(m => m.DisplayOrder))
             .Where(p => p.CircleId == circleId)
+            .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
         if (posts.Count == 0) return Results.Ok(Array.Empty<PostDto>());
