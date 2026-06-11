@@ -183,9 +183,7 @@ function HomePage() {
 								<div className="flex gap-3">
 									<Avatar className="size-10 shrink-0">
 										<AvatarImage src={profilePictureUrl ?? undefined} />
-										<AvatarFallback>
-											{(userInfo?.displayName || userInfo?.email || "?").slice(0, 2).toUpperCase()}
-										</AvatarFallback>
+										<AvatarFallback>{(userInfo?.displayName || userInfo?.email || "?").slice(0, 2).toUpperCase()}</AvatarFallback>
 									</Avatar>
 									<div className="flex flex-col gap-0.5 min-w-0">
 										{userInfo?.displayName && <p className="font-semibold text-sm leading-tight">{userInfo.displayName}</p>}
