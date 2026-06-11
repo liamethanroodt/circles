@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { ConcentricRings } from "@/components/ConcentricRings";
 import type { CircleRingData } from "@/components/ConcentricRings";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Icons
 import { UserRound, CirclePlus, Users } from "lucide-react";
@@ -41,11 +43,11 @@ interface Post {
 	media: PostMedia[];
 }
 
-// interface UserInfo {
-// 	displayName: string;
-// 	bio: string | null;
-// 	email: string;
-// }
+interface UserInfo {
+	displayName: string;
+	bio: string | null;
+	email: string;
+}
 
 export const Route = createFileRoute("/")({
 	beforeLoad: ({ context }) => {
@@ -61,7 +63,7 @@ function HomePage() {
 	const [circleRings, setCircleRings] = useState<CircleRingData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
-	// const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+	const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 	const [pendingCount, setPendingCount] = useState(0);
 
 	useEffect(() => {
@@ -105,13 +107,7 @@ function HomePage() {
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data) => {
 				if (data?.profilePictureUrl) setProfilePictureUrl(data.profilePictureUrl);
-				// if (data) {
-				// 	setUserInfo({
-				// 		displayName: data.displayName ?? "",
-				// 		bio: data.bio ?? null,
-				// 		email: data.email ?? "",
-				// 	});
-				// }
+				if (data) setUserInfo({ displayName: data.displayName ?? "", bio: data.bio ?? null, email: data.email ?? "" });
 			})
 			.catch(() => {});
 
@@ -131,7 +127,7 @@ function HomePage() {
 			<header className="px-4 pt-6 pb-4 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm z-10">
 				<div className="flex justify-between items-center max-w-[600px] w-full mx-auto">
 					<div className="flex items-center gap-2">
-						<img src="/circles_logo.svg" alt="" className="size-12" aria-hidden="true" />
+						<img src="/circles_logo_clear.svg" alt="" className="size-12" aria-hidden="true" />
 						<h1 className="text-xl font-semibold m-0 font-fascinate">Circles</h1>
 					</div>
 					<div className="flex items-center gap-1">
@@ -170,25 +166,35 @@ function HomePage() {
 							if (ring) navigate({ to: "/circles/$circleName", params: { circleName: ring.name } });
 						}}
 					>
-						<div className="flex flex-col items-center gap-2">
-							<div
-								className="size-[160px] rounded-full overflow-hidden cursor-pointer shrink-0 bg-muted border border-border flex items-center justify-center"
-								onClick={() => navigate({ to: "/profile" })}
-							>
-								{profilePictureUrl ? (
-									<img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
-								) : (
-									<UserRound className="size-16 text-muted-foreground" />
-								)}
-							</div>
-							{/* {userInfo && (
-								<div className="text-center" style={{ maxWidth: 180 }}>
-									{userInfo.displayName && <p className="font-semibold text-sm leading-tight">{userInfo.displayName}</p>}
-									{userInfo.bio && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-tight">{userInfo.bio}</p>}
-									{userInfo.email && <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{userInfo.email}</p>}
+						<HoverCard openDelay={300}>
+							<HoverCardTrigger asChild>
+								<div
+									className="size-[160px] rounded-full overflow-hidden cursor-pointer shrink-0 bg-muted border border-border flex items-center justify-center"
+									onClick={() => navigate({ to: "/profile" })}
+								>
+									{profilePictureUrl ? (
+										<img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
+									) : (
+										<UserRound className="size-16 text-muted-foreground" />
+									)}
 								</div>
-							)} */}
-						</div>
+							</HoverCardTrigger>
+							<HoverCardContent className="w-64">
+								<div className="flex gap-3">
+									<Avatar className="size-10 shrink-0">
+										<AvatarImage src={profilePictureUrl ?? undefined} />
+										<AvatarFallback>
+											{(userInfo?.displayName || userInfo?.email || "?").slice(0, 2).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+									<div className="flex flex-col gap-0.5 min-w-0">
+										{userInfo?.displayName && <p className="font-semibold text-sm leading-tight">{userInfo.displayName}</p>}
+										{userInfo?.email && <p className="text-xs text-muted-foreground truncate">{userInfo.email}</p>}
+										{userInfo?.bio && <p className="text-xs text-muted-foreground mt-1 leading-snug">{userInfo.bio}</p>}
+									</div>
+								</div>
+							</HoverCardContent>
+						</HoverCard>
 					</ConcentricRings>
 				)}
 				{!loading && circleRings.length === 0 && (
@@ -206,6 +212,32 @@ function HomePage() {
 					</div>
 				)}
 			</main>
+			<footer className="flex justify-center gap-2 pb-6">
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button variant="ghost" size="icon" asChild>
+							<a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+								<svg role="img" viewBox="0 0 24 24" className="size-5 fill-current" xmlns="http://www.w3.org/2000/svg">
+									<path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+								</svg>
+							</a>
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>LinkedIn</TooltipContent>
+				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button variant="ghost" size="icon" asChild>
+							<a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+								<svg role="img" viewBox="0 0 24 24" className="size-5 fill-current" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+								</svg>
+							</a>
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>GitHub</TooltipContent>
+				</Tooltip>
+			</footer>
 		</div>
 	);
 }
