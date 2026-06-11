@@ -49,7 +49,7 @@ When the app starts, the frontend dev server is proxied through the API server, 
 **1. Clone the repo**
 
 ```bash
-git clone https://github.com/your-username/circles.git
+git clone https://github.com/liamethanroodt/circles.git
 cd circles
 ```
 
