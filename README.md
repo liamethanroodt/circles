@@ -1,6 +1,10 @@
+<img alt="banner-slogan" src="https://github.com/user-attachments/assets/12b630e7-cfb3-427f-947a-c0558447e69f" />
+
 # Circles
 
 A private social media platform for the people who actually matter. Circles lets you organise your life into separate groups — family, close friends, colleagues — and share photos and videos exclusively within each one. No algorithm, no ads, no strangers.
+
+<img alt="full" src="https://github.com/user-attachments/assets/8a79456b-d02a-4a1c-b7d1-66de6714777e" />
 
 ## Features
 
