@@ -16,7 +16,7 @@ A private social media platform for the people who actually matter. Circles lets
 | Layer         | Technology                                                      |
 | ------------- | --------------------------------------------------------------- |
 | Orchestration | [.NET Aspire](https://learn.microsoft.com/en-us/dotnet/aspire/) |
-| Backend       | ASP.NET Core 10 (Minimal APIs)                                  |
+| Backend       | .NET Core 10 (Minimal APIs)                                  |
 | Auth          | ASP.NET Core Identity                                           |
 | Database      | MS SQL Server + Entity Framework Core                           |
 | Cache         | Redis (output caching)                                          |
@@ -32,7 +32,7 @@ Aspire orchestrates all services. In development, everything runs locally — SQ
 
 ```
 circles.AppHost       ← Aspire orchestration (wires everything together)
-circles.Server        ← ASP.NET Core API
+circles.Server        ← .NET Core API
 circles.Frontend      ← React/Vite app (proxied through the server in dev)
 ```
 
