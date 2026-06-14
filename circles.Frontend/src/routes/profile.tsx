@@ -33,12 +33,6 @@ export const Route = createFileRoute("/profile")({
 	component: ProfilePage,
 });
 
-interface Friend {
-	userId: string;
-	displayName: string;
-	profilePictureUrl: string | null;
-}
-
 interface UserProfile {
 	email: string;
 	displayName: string;
@@ -54,7 +48,6 @@ function ProfilePage() {
 	const [bio, setBio] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [uploadingPicture, setUploadingPicture] = useState(false);
-	// const [friends, setFriends] = useState<Friend[]>([]);
 	const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
 
 	const hasChanges = displayName !== (profile?.displayName ?? "") || bio !== (profile?.bio ?? "");
@@ -126,10 +119,6 @@ function ProfilePage() {
 				}
 			});
 
-		// fetch("/api/friends/")
-		// 	.then((r) => (r.ok ? r.json() : []))
-		// 	.then(setFriends)
-		// 	.catch(() => {});
 	}, []);
 
 	const initials = (displayName || profile?.email || "?")
@@ -206,38 +195,6 @@ function ProfilePage() {
 					</div>
 				</section>
 				<Separator />
-				{/* Friends */}
-				{/* <section className="flex flex-col gap-3">
-					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-						Friends
-						{friends.length > 0 && (
-							<span className="ml-2 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-normal normal-case tracking-normal text-secondary-foreground">
-								{friends.length}
-							</span>
-						)}
-					</h2>
-					{friends.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-							<div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-								<Users className="size-6" />
-							</div>
-							<p className="text-sm text-muted-foreground">No friends yet.</p>
-						</div>
-					) : (
-						friends.map((friend) => (
-							<div key={friend.userId} className="flex items-center gap-3 p-3 rounded-lg border border-border">
-								<Avatar className="size-10 shrink-0">
-									<AvatarImage src={friend.profilePictureUrl ?? undefined} />
-									<AvatarFallback>{friend.displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
-								</Avatar>
-								<div className="flex-1 min-w-0">
-									<p className="font-medium text-sm truncate">{friend.displayName}</p>
-								</div>
-							</div>
-						))
-					)}
-				</section>
-				<Separator /> */}
 				{/* Edit profile */}
 				<section className="flex flex-col gap-3">
 					<h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Edit profile</h2>

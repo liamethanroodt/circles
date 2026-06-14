@@ -211,8 +211,6 @@ function HomePage() {
 				)}
 			</main>
 			<footer className="flex justify-center gap-2 pb-6">
-				{/* <Tooltip> */}
-				{/* <TooltipTrigger asChild> */}
 				<Button variant="ghost" size="icon" asChild>
 					<a href="https://www.linkedin.com/in/liamroodt" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
 						<svg role="img" viewBox="0 0 24 24" className="size-5 fill-current" xmlns="http://www.w3.org/2000/svg">
@@ -220,11 +218,6 @@ function HomePage() {
 						</svg>
 					</a>
 				</Button>
-				{/* </TooltipTrigger> */}
-				{/* <TooltipContent>LinkedIn</TooltipContent>	 */}
-				{/* </Tooltip> */}
-				{/* <Tooltip> */}
-				{/* <TooltipTrigger asChild> */}
 				<Button variant="ghost" size="icon" asChild>
 					<a href="https://github.com/liamethanroodt/circles" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
 						<svg role="img" viewBox="0 0 24 24" className="size-5 fill-current" xmlns="http://www.w3.org/2000/svg">
@@ -232,9 +225,6 @@ function HomePage() {
 						</svg>
 					</a>
 				</Button>
-				{/* </TooltipTrigger> */}
-				{/* <TooltipContent>GitHub</TooltipContent> */}
-				{/* </Tooltip> */}
 			</footer>
 		</div>
 	);
