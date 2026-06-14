@@ -1,4 +1,4 @@
-<img alt="banner-slogan" src="https://github.com/user-attachments/assets/12b630e7-cfb3-427f-947a-c0558447e69f" />
+<img width="845" height="411" alt="Screenshot 2026-06-14 150737" src="https://github.com/user-attachments/assets/e25f69ee-0de2-43a4-96fc-0377b3bdfeec" />
 
 # Circles
 
