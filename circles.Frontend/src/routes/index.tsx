@@ -128,7 +128,7 @@ function HomePage() {
 				<div className="flex justify-between items-center max-w-[600px] w-full mx-auto">
 					<div className="flex items-center gap-2">
 						<img src="/circles_logo_clear.svg" alt="" className="size-12" aria-hidden="true" />
-						<h1 className="text-xl font-semibold m-0 font-fascinate">Circles</h1>
+						<h1 className="text-xl font-semibold m-0">Circles</h1>
 					</div>
 					<div className="flex items-center gap-1">
 						<Tooltip>

@@ -97,7 +97,7 @@ function LoginPage() {
 				{/* Branding */}
 				<div className="relative z-10 flex flex-col items-center gap-6 text-center">
 					<img src="/circles_logo.svg" alt="Circles logo" className="size-50" />
-					<span className="text-6xl font-bold tracking-tight font-fascinate">Circles</span>
+					<span className="text-6xl font-bold tracking-tight">Circles</span>
 					<p className="max-w-xs text-lg text-white/75">Share with the people that matter</p>
 				</div>
 			</div>
@@ -109,7 +109,7 @@ function LoginPage() {
 							{/* Branding shown only on mobile */}
 							<div className="flex flex-col items-center gap-2 pb-2 lg:hidden">
 								<img src="/circles_logo.svg" alt="Circles logo" className="size-50" />
-								<span className="text-4xl font-bold tracking-tight font-fascinate">Circles</span>
+								<span className="text-4xl font-bold tracking-tight">Circles</span>
 								<p className="text-sm text-muted-foreground">Share with the people that matter</p>
 							</div>
 							<div className="text-center hidden lg:block">

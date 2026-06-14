@@ -78,7 +78,7 @@ function ConfirmEmailPage() {
 				<div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
 					<CircleDot className="size-4" />
 				</div>
-				<span className="font-fascinate">Circles</span>
+				<span>Circles</span>
 			</div>
 
 			<div className="w-full max-w-sm text-center">
