@@ -4,18 +4,17 @@ using MailKit.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Resend;
 
 namespace circles.Server.Features.Auth.Services;
 
 /// <summary>
-/// Implements ASP.NET Core Identity's <see cref="IEmailSender{TUser}"/> interface using
-/// MailKit for SMTP transport.
+/// Implements ASP.NET Core Identity's <see cref="IEmailSender{TUser}"/> interface.
 ///
-/// In development the constructor resolves the SMTP host and port from the MailPit
-/// connection string that .NET Aspire injects at startup (format: "endpoint=smtp://host:port").
-/// In production it falls back to the <see cref="SmtpSettings"/> configuration section.
+/// In development (Aspire injects a "mailpit" connection string) it uses MailKit to relay
+/// through the local Mailpit container.  In production it uses the Resend API.
 /// </summary>
-public class EmailSender(IOptions<SmtpSettings> options, IConfiguration configuration)
+public class EmailSender(IOptions<SmtpSettings> options, IConfiguration configuration, IResend resend)
     : IEmailSender<ApplicationUser>, IAppEmailSender
 {
     private readonly SmtpSettings _settings = options.Value;
@@ -68,9 +67,37 @@ public class EmailSender(IOptions<SmtpSettings> options, IConfiguration configur
 
     private async Task SendEmailAsync(string to, string subject, string htmlBody)
     {
-        var (host, port) = ResolveSmtpEndpoint();
+        if (!string.IsNullOrEmpty(configuration.GetConnectionString("mailpit")))
+        {
+            await SendViaMailpitAsync(to, subject, htmlBody);
+        }
+        else
+        {
+            await SendViaResendAsync(to, subject, htmlBody);
+        }
+    }
 
-        // Build a MIME message. MimeKit handles all RFC-2822 encoding concerns.
+    private async Task SendViaResendAsync(string to, string subject, string htmlBody)
+    {
+        var message = new EmailMessage();
+        message.From = $"{_settings.FromName} <{_settings.FromEmail}>";
+        message.To.Add(to);
+        message.Subject = subject;
+        message.HtmlBody = htmlBody;
+
+        await resend.EmailSendAsync(message);
+    }
+
+    private async Task SendViaMailpitAsync(string to, string subject, string htmlBody)
+    {
+        var connectionString = configuration.GetConnectionString("mailpit")!;
+
+        // Aspire injects the connection string as "endpoint=smtp://host:port"
+        const string endpointKey = "endpoint=";
+        var startIndex = connectionString.IndexOf(endpointKey, StringComparison.OrdinalIgnoreCase);
+        var uriString = connectionString[(startIndex + endpointKey.Length)..].TrimEnd(';');
+        Uri.TryCreate(uriString, UriKind.Absolute, out var uri);
+
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
         message.To.Add(MailboxAddress.Parse(to));
@@ -78,60 +105,8 @@ public class EmailSender(IOptions<SmtpSettings> options, IConfiguration configur
         message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
         using var client = new SmtpClient();
-
-        // SecureSocketOptions.None  → plain-text connection (MailPit in development)
-        // SecureSocketOptions.SslOnConnect → immediate TLS (production port 465)
-        // SecureSocketOptions.StartTls  → STARTTLS upgrade (production port 587)
-        var socketOptions = _settings.UseSsl
-            ? SecureSocketOptions.SslOnConnect
-            : SecureSocketOptions.None;
-
-        await client.ConnectAsync(host, port, socketOptions);
-
-        if (!string.IsNullOrEmpty(_settings.Username))
-        {
-            await client.AuthenticateAsync(_settings.Username, _settings.Password ?? string.Empty);
-        }
-
+        await client.ConnectAsync(uri!.Host, uri.Port, SecureSocketOptions.None);
         await client.SendAsync(message);
         await client.DisconnectAsync(quit: true);
-    }
-
-    /// <summary>
-    /// Resolves the SMTP host and port to use for the current environment.
-    ///
-    /// When running under .NET Aspire, the MailPit resource injects a connection string
-    /// (via <c>ConnectionStrings__mailpit</c>) in the format:
-    /// <c>endpoint=smtp://&lt;host&gt;:&lt;port&gt;</c>
-    ///
-    /// This method parses that URI so the server always connects to the dynamically
-    /// allocated port that Aspire mapped on the host — no hard-coded port numbers needed.
-    ///
-    /// Outside of Aspire (e.g. production or standalone runs) the values come from the
-    /// <c>SmtpSettings</c> configuration section in appsettings.json / environment variables.
-    /// </summary>
-    private (string host, int port) ResolveSmtpEndpoint()
-    {
-        var connectionString = configuration.GetConnectionString("mailpit");
-
-        if (!string.IsNullOrEmpty(connectionString))
-        {
-            // The MailPit Aspire integration uses the key-value format:
-            // "endpoint=smtp://localhost:PORT"
-            // We parse out the smtp:// URI to extract host and port.
-            const string endpointKey = "endpoint=";
-            var startIndex = connectionString.IndexOf(endpointKey, StringComparison.OrdinalIgnoreCase);
-            if (startIndex >= 0)
-            {
-                var uriString = connectionString[(startIndex + endpointKey.Length)..].TrimEnd(';');
-                if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
-                {
-                    return (uri.Host, uri.Port);
-                }
-            }
-        }
-
-        // Fall back to explicit SmtpSettings (production / standalone runs).
-        return (_settings.Host, _settings.Port);
     }
 }

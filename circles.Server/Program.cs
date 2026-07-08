@@ -9,6 +9,7 @@ using circles.Server.Features.Friends.Endpoints;
 using circles.Server.Features.Posts.Endpoints;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Resend;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,13 +25,14 @@ builder.AddAzureBlobServiceClient("blobs");
 builder.Services.AddDbContext<CirclesDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("circlesdb")));
 
-// Bind SMTP settings from the "SmtpSettings" configuration section.
-// In development these are partially overridden by the MailPit connection string that
-// .NET Aspire injects; in production set real SMTP values here or via environment variables.
+// Bind SMTP settings (FromName / FromEmail used by both Mailpit dev path and Resend).
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
-// Register our MailKit-based email sender. ASP.NET Core Identity resolves
-// IEmailSender<ApplicationUser> internally and we also inject it explicitly in endpoints.
+// Resend is used for all outbound email in production.
+// Set Resend__ApiKey via environment variable or Azure Key Vault.
+builder.Services.AddResend(options =>
+    options.ApiToken = builder.Configuration["Resend:ApiKey"] ?? string.Empty);
+
 builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSender>();
 builder.Services.AddTransient<IAppEmailSender, EmailSender>();
 
