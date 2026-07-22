@@ -18,6 +18,6 @@
     <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.4.6" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.6" />
     <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.6" />
-    <PackageReference Include="CommunityToolkit.Aspire.Hosting.MailPit" Version="13.1.1" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.MailPit" Version="13.4.0" />
   </ItemGroup>
 </Project>
